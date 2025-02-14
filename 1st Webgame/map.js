@@ -13,7 +13,8 @@ class MapTile{
         let x = tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - playerX;
         let y = -tileY * size * (1 + SQRT3) / 2 - playerY;
 
-        ctx.fillStyle = "#000000";
+        ctx.strokeStyle = "#000000";
+        ctx.fillStyle = "#ffffff";
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(x, y + size);
