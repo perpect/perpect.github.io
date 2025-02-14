@@ -14,6 +14,8 @@ canvas.addEventListener("mousedown", function(mouse){
     dragPoint.x = mouse.x + camera.x;
     dragPoint.y = mouse.y + camera.y;
     dragPoint.isDrag = true;
+    map.isIncludingPoint(mouse.x, mouse.y, camera);
+    //console.log(camera);
 }, false);
 
 canvas.addEventListener("mousemove", function(mouse){
@@ -28,4 +30,4 @@ canvas.addEventListener("mouseup", function(mouse){
 
 //document.addEventListener("keydown", keyDownHandler, false);
 //document.addEventListener("keyup", keyUpHandler, false);
-setInterval(update, 10);
+setInterval(update, 2);

@@ -1,3 +1,17 @@
+const SQRT3 = 1.732;
+
+const TileType = {
+    NONE : 0,
+    PLAIN : 1
+};
+Object.freeze(TileType);
+
+const TileColor = [
+    ["#ffffff", "#ffffff"],
+    ["#757003", "#6a8518"]
+];
+Object.freeze(TileColor);
+
 class Camera{
     constructor(x, y, zoom = 1) {
         this.x = x;
@@ -6,43 +20,42 @@ class Camera{
     }
 }
 
-const TileType = {
-    PLAIN : 0
-};
-Object.freeze(TileType);
-
-const TileColor = [
-    ("#757003", "#6a8518")
-];
-Object.freeze(TileColor);
-
 class WorldMap{
     constructor(){
         this.map = [];
+        this.newLine(3);
+        this.newLine(4);
         this.newLine(5);
-        this.newLine(5);
-        this.newLine(5);
+        this.newLine(6);
+        this.newLine(7);
+        this.map[3][0].type = TileType.NONE;
+        this.map[4][0].type = TileType.NONE;
+        this.map[4][1].type = TileType.NONE;
+        this.map[3][5].type = TileType.NONE;
+        this.map[4][6].type = TileType.NONE;
+        this.map[4][5].type = TileType.NONE;
     }
 
     newLine(n){
+        this.map.push([]);
         for (let x = 0; x < n; x++) {
-            this.map.push(new MapTile(TileType.PLAIN, x, this.map.length));
+            this.map[this.map.length - 1].push(new MapTile(TileType.PLAIN, x, this.map.length));
         }
     }
 
     draw(camera){
-        for (let y = 0; y < map.length; y++) {
-            for (let x = 0; x < map[y].length; x++) {
-                const tile = map[y][x];
-                tile.draw(x, y, camera);
+        for (let y = 0; y < this.map.length; y++) {
+            for (let x = 0; x < this.map[y].length; x++) {
+                let tile = this.map[y][x];
+                tile.draw(camera);
             }
         }
     }
 
     isIncludingPoint(px, py, camera){
-        for (let y = 0; y < map.length; y++) {
-            for (let x = 0; x < map[y].length; x++) {
-                const tile = map[y][x];
+        for (let y = 0; y < this.map.length; y++) {
+            for (let x = 0; x < this.map[y].length; x++) {
+                let tile = this.map[y][x];
                 if (tile.isIncludingPoint(px, py, camera)){
                     console.log("(" + x + ", " + y + ")");
                 }
@@ -59,18 +72,30 @@ class MapTile{
         this.tileY = tileY;
     }
 
-    draw(camera){
-        const SQRT3 = 1.732;
+    getCenter(camera){
         const size = this.size * camera.zoom;
-        const x = this.tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - camera.x;
-        const y = -this.tileY * size * 3 / 2 - camera.y;
-        if (this.tileX == 0 && this.tileY == 0){
-            console.log("(" + x + ", " + y + ")");
+        const x = this.tileX * size * SQRT3 - this.tileY * size * SQRT3 / 2 - camera.x;
+        const y = this.tileY * size * 3 / 2 - camera.y;
+        return { x : x, y : y, size : size };
+    }
+
+    draw(camera){
+        if (this.type == TileType.NONE){
+            return ;
+        }
+        const SQRT3 = 1.732;
+        const center = this.getCenter(camera);
+        const size = center.size;
+        const x = center.x;
+        const y = center.y;
+        if (this.tileX + this.tileY == 0){
+            //console.log(x, y);
         }
 
+        //console.log(TileColor[this.type]);
         ctx.strokeStyle = TileColor[this.type][0];
         ctx.fillStyle = TileColor[this.type][1];
-        ctx.lineWidth = 5;
+        ctx.lineWidth = size / 20;
         ctx.beginPath();
         ctx.moveTo(x, y + size);
         ctx.lineTo(x + size * SQRT3 / 2, y + size / 2);
@@ -81,37 +106,36 @@ class MapTile{
         ctx.lineTo(x, y + size);
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
     }
 
     isIncludingPoint(px, py, camera){
-        const SQRT3 = 1.732;
-        const size = this.size * camera.zoom;
-        const centerX = this.tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - camera.x;
-        const centerY = -this.tileY * size * 3 / 2 - camera.y;
+        const center = this.getCenter(camera);
+        const size = center.size;
 
-        const left = centerX - size * SQRT3 / 2;
-        const right = centerX + size * SQRT3 / 2;
-        const topCenter = centerY + size / 2;
-        const bottomCenter = centerY - size / 2;
-        if (left <= px <= centerX){
-            if (topCenter <= py <= topCenter + (px - left) / SQRT3){
+        const left = center.x - size * SQRT3 / 2;
+        const right = center.x + size * SQRT3 / 2;
+        const topCenter = center.y + size / 2;
+        const bottomCenter = center.y - size / 2;
+        if (left <= px && px <= center.x){
+            if (topCenter <= py && py <= topCenter + (px - left) / SQRT3){
                 return true;
             }
-            if (bottomCenter <= py <= topCenter){
+            if (bottomCenter <= py && py <= topCenter){
                 return true;
             }
-            if (bottomCenter - (px - left) / SQRT3 <= py <= bottomCenter){
+            if (bottomCenter - (px - left) / SQRT3 <= py && py <= bottomCenter){
                 return true;
             }
         }
-        if (centerX <= px <= right){
-            if (topCenter <= py <= topCenter + (right - px) / SQRT3){
+        if (center.x <= px && px <= right){
+            if (topCenter <= py && py <= topCenter + (right - px) / SQRT3){
                 return true;
             }
-            if (bottomCenter <= py <= topCenter){
+            if (bottomCenter <= py && py <= topCenter){
                 return true;
             }
-            if (bottomCenter - (right - px) / SQRT3 <= py <= bottomCenter){
+            if (bottomCenter - (right - px) / SQRT3 <= py && py <= bottomCenter){
                 return true;
             }
         }
