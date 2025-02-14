@@ -19,8 +19,8 @@ function update() {
 }
 
 canvas.addEventListener("mousedown", function(mouse){
-    dragPoint.x = mouse.x;
-    dragPoint.y = mouse.y;
+    dragPoint.x = mouse.x + camera.x;
+    dragPoint.y = mouse.y + camera.y;
     dragPoint.isDrag = true;
 }, false);
 

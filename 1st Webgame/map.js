@@ -16,17 +16,23 @@ const TileColor = [
 ];
 Object.freeze(TileColor);
 
+class WorldMap{
+
+}
+
 class MapTile{
-    constructor(type, size = 20) {
+    constructor(type, tileX, tileY, size = 20) {
         this.type = type;
         this.size = size;
+        this.tileX = tileX;
+        this.tileY = tileY;
     }
 
-    draw(tileX, tileY, camera){
+    draw(camera){
         const SQRT3 = 1.732;
-        let size = this.size * camera.zoom;
-        let x = tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - camera.x;
-        let y = -tileY * size * 3 / 2 - camera.y;
+        const size = this.size * camera.zoom;
+        const x = this.tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - camera.x;
+        const y = -this.tileY * size * 3 / 2 - camera.y;
 
         ctx.strokeStyle = TileColor[this.type][0];
         ctx.fillStyle = TileColor[this.type][1];
@@ -41,5 +47,14 @@ class MapTile{
         ctx.lineTo(x, y + size);
         ctx.closePath();
         ctx.fill();
+    }
+
+    isIncludingPoint(px, py){
+        const SQRT3 = 1.732;
+        const size = this.size * camera.zoom;
+        const centerX = this.tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - camera.x;
+        const centerY = -this.tileY * size * 3 / 2 - camera.y;
+
+        centerX - this.size * SQRT3 / 2;
     }
 }
