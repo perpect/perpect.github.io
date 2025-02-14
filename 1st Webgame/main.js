@@ -2,7 +2,7 @@ const canvas = document.getElementById("mainCanv");
 const ctx = canvas.getContext("2d");
 
 var camera = new Camera(0, 0);
-var dragStartPos = { x : 0, y : 0 };
+var dragPoint = { x : 0, y : 0, isDrag : false };
 var map = [[new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN)],
     [new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN)],
     [new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN)]
@@ -19,13 +19,19 @@ function update() {
 }
 
 canvas.addEventListener("mousedown", function(mouse){
-    dragStartPos.x = mouse.x;
-    dragStartPos.y = mouse.y;
+    dragPoint.x = mouse.x;
+    dragPoint.y = mouse.y;
+    dragPoint.isDrag = true;
 }, false);
 
 canvas.addEventListener("mousemove", function(mouse){
-    camera.x = dragStartPos.x - mouse.x;
-    camera.y = dragStartPos.y - mouse.y;
+    if (!isDrag) { return; }
+    camera.x = dragPoint.x - mouse.x;
+    camera.y = dragPoint.y - mouse.y;
+}, false);
+
+canvas.addEventListener("mouseup", function(mouse){
+    dragPoint.isDrag = false;
 }, false);
 
 //document.addEventListener("keydown", keyDownHandler, false);
