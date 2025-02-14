@@ -11,9 +11,9 @@ const TileType = {
 };
 Object.freeze(TileType);
 
-const TileColor = {
-    PLAIN : ("#757003", "#6a8518")
-};
+const TileColor = [
+    ("#757003", "#6a8518")
+];
 Object.freeze(TileColor);
 
 class MapTile{
