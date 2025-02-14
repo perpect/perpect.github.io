@@ -24,8 +24,8 @@ canvas.addEventListener("mousedown", function(mouse){
 }, false);
 
 canvas.addEventListener("mousemove", function(mouse){
-    camera.x += dragStartPos.x - mouse.x;
-    camera.y += dragStartPos.y - mouse.y;
+    camera.x = dragStartPos.x - mouse.x;
+    camera.y = dragStartPos.y - mouse.y;
 }, false);
 
 //document.addEventListener("keydown", keyDownHandler, false);
