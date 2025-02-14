@@ -11,10 +11,10 @@ class MapTile{
     draw(tileX, tileY, playerX, playerY, size){
         const SQRT3 = 1.732;
         let x = tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - playerX;
-        let y = -tileY * size * (1 + SQRT3) / 2 - playerY;
+        let y = -tileY * size * 3 / 2 - playerY;
 
-        ctx.strokeStyle = "#000000";
-        ctx.fillStyle = "#ffffff";
+        //ctx.strokeStyle = "#000000";
+        ctx.fillStyle = "#000000";
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(x, y + size);
