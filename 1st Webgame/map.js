@@ -11,6 +11,11 @@ const TileType = {
 };
 Object.freeze(TileType);
 
+const TileColor = {
+    PLAIN : ("#757003", "#6a8518")
+};
+Object.freeze(TileColor);
+
 class MapTile{
     constructor(type, size = 20) {
         this.type = type;
@@ -23,8 +28,8 @@ class MapTile{
         let x = tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - camera.x;
         let y = -tileY * size * 3 / 2 - camera.y;
 
-        ctx.strokeStyle = "#000000";
-        ctx.fillStyle = "#a0a0a0";
+        ctx.strokeStyle = TileColor[this.type][0];
+        ctx.fillStyle = TileColor[this.type][1];
         ctx.lineWidth = 5;
         ctx.beginPath();
         ctx.moveTo(x, y + size);
