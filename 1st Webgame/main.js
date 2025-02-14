@@ -3,15 +3,19 @@ const ctx = canvas.getContext("2d");
 
 var camera = new Camera(0, 0);
 var dragStartPos = { x : 0, y : 0 };
-var a = new MapTile(0);
+var map = [[new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN)],
+    [new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN)],
+    [new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN)]
+]
 
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    a.draw(0, 0, camera);
-    a.draw(1, 0, camera);
-    a.draw(0, 1, camera);
-    a.draw(1, 1, camera);
-    a.draw(1, 2, camera);
+    for (let y = 0; y < map.length; y++) {
+        for (let x = 0; x < map[y].length; x++) {
+            const tile = map[y][x];
+            tile.draw(x, y, camera);
+        }
+    }
 }
 
 canvas.addEventListener("mousedown", function(mouse){
