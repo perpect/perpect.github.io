@@ -25,7 +25,7 @@ canvas.addEventListener("mousedown", function(mouse){
 }, false);
 
 canvas.addEventListener("mousemove", function(mouse){
-    if (!isDrag) { return; }
+    if (!dragPoint.isDrag) { return; }
     camera.x = dragPoint.x - mouse.x;
     camera.y = dragPoint.y - mouse.y;
 }, false);
