@@ -1,17 +1,27 @@
-const Type = {
+class Camera{
+    constructor(x, y, zoom = 1) {
+        this.x = x;
+        this.y = y;
+        this.zoom = zoom;
+    }
+}
+
+const TileType = {
     PLAIN : 0
 };
-Object.freeze(Type);
+Object.freeze(TileType);
 
 class MapTile{
-    constructor(type) {
+    constructor(type, size = 20) {
         this.type = type;
+        this.size = size;
     }
 
-    draw(tileX, tileY, playerX, playerY, size){
+    draw(tileX, tileY, camera){
         const SQRT3 = 1.732;
-        let x = tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - playerX;
-        let y = -tileY * size * 3 / 2 - playerY;
+        let size = this.size * camera.zoom;
+        let x = tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - camera.x;
+        let y = -tileY * size * 3 / 2 - camera.y;
 
         ctx.strokeStyle = "#000000";
         ctx.fillStyle = "#a0a0a0";
