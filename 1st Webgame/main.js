@@ -9,11 +9,11 @@ var a = new MapTile(0);
 
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    a.draw(0, 0, 0, 0);
-    a.draw(1, 0, 0, 0);
-    a.draw(0, 1, 0, 0);
-    a.draw(1, 1, 0, 0);
-    a.draw(1, 2, 0, 0);
+    a.draw(0, 0, 0, 0, 10);
+    a.draw(1, 0, 0, 0, 10);
+    a.draw(0, 1, 0, 0, 10);
+    a.draw(1, 1, 0, 0, 10);
+    a.draw(1, 2, 0, 0, 10);
 }
 
 document.addEventListener("keydown", keyDownHandler, false);
