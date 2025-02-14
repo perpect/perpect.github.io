@@ -28,6 +28,11 @@ canvas.addEventListener("mouseup", function(mouse){
     dragPoint.isDrag = false;
 }, false);
 
+canvas.addEventListener("wheel", function(mouse){
+    console.log(mouse.deltaY);
+    camera.zoom -= mouse.deltaY * 0.001;
+}, false);
+
 //document.addEventListener("keydown", keyDownHandler, false);
 //document.addEventListener("keyup", keyUpHandler, false);
 setInterval(update, 2);
