@@ -28,4 +28,4 @@ canvas.addEventListener("mouseup", function(mouse){
 
 //document.addEventListener("keydown", keyDownHandler, false);
 //document.addEventListener("keyup", keyUpHandler, false);
-setInterval(update, 5);
+setInterval(update, 10);

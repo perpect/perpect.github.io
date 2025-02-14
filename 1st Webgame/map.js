@@ -52,7 +52,7 @@ class WorldMap{
 }
 
 class MapTile{
-    constructor(type, tileX, tileY, size = 20) {
+    constructor(type, tileX, tileY, size = 100) {
         this.type = type;
         this.size = size;
         this.tileX = tileX;
@@ -64,6 +64,9 @@ class MapTile{
         const size = this.size * camera.zoom;
         const x = this.tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - camera.x;
         const y = -this.tileY * size * 3 / 2 - camera.y;
+        if (this.tileX == 0 && this.tileY == 0){
+            console.log("(" + x + ", " + y + ")");
+        }
 
         ctx.strokeStyle = TileColor[this.type][0];
         ctx.fillStyle = TileColor[this.type][1];
