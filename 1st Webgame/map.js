@@ -19,9 +19,9 @@ Object.freeze(TileColor);
 class WorldMap{
     constructor(){
         this.map = [];
-        newLine(5);
-        newLine(5);
-        newLine(5);
+        this.newLine(5);
+        this.newLine(5);
+        this.newLine(5);
     }
 
     newLine(n){
