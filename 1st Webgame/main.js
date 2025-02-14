@@ -3,19 +3,11 @@ const ctx = canvas.getContext("2d");
 
 var camera = new Camera(0, 0);
 var dragPoint = { x : 0, y : 0, isDrag : false };
-var map = [[new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN)],
-    [new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN)],
-    [new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN), new MapTile(TileType.PLAIN)]
-]
+var map = new WorldMap();
 
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let y = 0; y < map.length; y++) {
-        for (let x = 0; x < map[y].length; x++) {
-            const tile = map[y][x];
-            tile.draw(x, y, camera);
-        }
-    }
+    map.draw(camera);
 }
 
 canvas.addEventListener("mousedown", function(mouse){

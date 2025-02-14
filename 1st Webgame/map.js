@@ -17,7 +17,27 @@ const TileColor = [
 Object.freeze(TileColor);
 
 class WorldMap{
+    constructor(){
+        this.map = [];
+        newLine(5);
+        newLine(5);
+        newLine(5);
+    }
 
+    newLine(n){
+        for (let x = 0; x < n; x++) {
+            this.map.push(new MapTile(TileType.PLAIN, x, this.map.length));
+        }
+    }
+
+    draw(camera){
+        for (let y = 0; y < map.length; y++) {
+            for (let x = 0; x < map[y].length; x++) {
+                const tile = map[y][x];
+                tile.draw(x, y, camera);
+            }
+        }
+    }
 }
 
 class MapTile{
@@ -55,6 +75,9 @@ class MapTile{
         const centerX = this.tileX * size * SQRT3 - tileY * size * SQRT3 / 2 - camera.x;
         const centerY = -this.tileY * size * 3 / 2 - camera.y;
 
-        centerX - this.size * SQRT3 / 2;
+        const left = centerX - size * SQRT3 / 2;
+        const top = centerY + size;
+        const topCenter = centerY + size / 2;
+        if (left <= px <= )
     }
 }
