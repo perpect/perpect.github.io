@@ -16,6 +16,6 @@ function update() {
     a.draw(1, 2, 0, 0, 10);
 }
 
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
+//document.addEventListener("keydown", keyDownHandler, false);
+//document.addEventListener("keyup", keyUpHandler, false);
 setInterval(update, 10);
