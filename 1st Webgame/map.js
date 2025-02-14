@@ -15,7 +15,7 @@ class MapTile{
 
         //ctx.strokeStyle = "#000000";
         ctx.fillStyle = "#000000";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 5;
         ctx.beginPath();
         ctx.moveTo(x, y + size);
         ctx.lineTo(x + size * SQRT3 / 2, y + size / 2);
