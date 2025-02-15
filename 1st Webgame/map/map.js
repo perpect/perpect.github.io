@@ -1,17 +1,5 @@
 const SQRT3 = 1.732;
 
-const TileType = {
-    NONE : 0,
-    PLAIN : 1
-};
-Object.freeze(TileType);
-
-const TileColor = [
-    ["#ffffff", "#ffffff"],
-    ["#757003", "#6a8518"]
-];
-Object.freeze(TileColor);
-
 class Camera{
     constructor(x, y, zoom = 1) {
         this.x = x;
@@ -28,18 +16,19 @@ class WorldMap{
         this.newLine(5);
         this.newLine(6);
         this.newLine(7);
-        this.map[3][0].type = TileType.NONE;
-        this.map[4][0].type = TileType.NONE;
-        this.map[4][1].type = TileType.NONE;
-        this.map[3][5].type = TileType.NONE;
-        this.map[4][6].type = TileType.NONE;
-        this.map[4][5].type = TileType.NONE;
+        this.map[2][2].type = new WaterTile();
+        this.map[3][0].type = new NoneTile();
+        this.map[4][0].type = new NoneTile();
+        this.map[4][1].type = new NoneTile();
+        this.map[3][5].type = new NoneTile();
+        this.map[4][6].type = new NoneTile();
+        this.map[4][5].type = new NoneTile();
     }
 
     newLine(n){
         this.map.push([]);
         for (let x = 0; x < n; x++) {
-            this.map[this.map.length - 1].push(new MapTile(TileType.PLAIN, x, this.map.length));
+            this.map[this.map.length - 1].push(new MapTile(new PlainTile(), x, this.map.length));
         }
     }
 
@@ -70,6 +59,7 @@ class MapTile{
         this.size = size;
         this.tileX = tileX;
         this.tileY = tileY;
+        this.troop = [];
     }
 
     getCenter(camera){
@@ -80,7 +70,7 @@ class MapTile{
     }
 
     draw(camera){
-        if (this.type == TileType.NONE){
+        if (this.type.isEmpty){
             return ;
         }
         const SQRT3 = 1.732;
@@ -93,8 +83,8 @@ class MapTile{
         }
 
         //console.log(TileColor[this.type]);
-        ctx.strokeStyle = TileColor[this.type][0];
-        ctx.fillStyle = TileColor[this.type][1];
+        ctx.strokeStyle = this.type.strokeColor;
+        ctx.fillStyle = this.type.fillColor;
         ctx.lineWidth = size / 20;
         ctx.beginPath();
         ctx.moveTo(x, y + size);

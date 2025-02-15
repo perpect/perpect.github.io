@@ -29,7 +29,6 @@ canvas.addEventListener("mouseup", function(mouse){
 }, false);
 
 canvas.addEventListener("wheel", function(mouse){
-    console.log(mouse.deltaY);
     camera.zoom -= mouse.deltaY * 0.001;
 }, false);
 
