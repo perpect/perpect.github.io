@@ -23,7 +23,7 @@ class WorldMap{
         this.map[3][5].type = new NoneTile();
         this.map[4][6].type = new NoneTile();
         this.map[4][5].type = new NoneTile();
-        this.map[1][2].troop = new TestUnit();
+        //this.map[1][2].troop = new TestUnit();
     }
 
     newLine(n){
