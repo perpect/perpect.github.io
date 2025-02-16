@@ -23,6 +23,7 @@ class WorldMap{
         this.map[3][5].type = new NoneTile();
         this.map[4][6].type = new NoneTile();
         this.map[4][5].type = new NoneTile();
+        this.map[1][2].troop = new TestUnit();
     }
 
     newLine(n){
@@ -59,7 +60,7 @@ class MapTile{
         this.size = size;
         this.tileX = tileX;
         this.tileY = tileY;
-        this.troop = [];
+        this.troop = null;
     }
 
     getCenter(camera){
