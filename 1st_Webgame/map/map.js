@@ -23,13 +23,16 @@ class WorldMap{
         this.map[3][5].type = new NoneTile();
         this.map[4][6].type = new NoneTile();
         this.map[4][5].type = new NoneTile();
-        //this.map[1][2].troop = new TestUnit();
+        this.map[0][0].troop = new TestUnit(0, 0);
+        this.map[1][1].troop = new TestUnit(1, 1);
+        this.map[1][2].troop = new TestUnit(1, 2);
+        this.map[3][3].troop = new TestUnit(3, 3);
     }
 
     newLine(n){
         this.map.push([]);
         for (let x = 0; x < n; x++) {
-            this.map[this.map.length - 1].push(new MapTile(new PlainTile(), x, this.map.length));
+            this.map[this.map.length - 1].push(new MapTile(new PlainTile(), x, this.map.length - 1));
         }
     }
 
@@ -38,6 +41,15 @@ class WorldMap{
             for (let x = 0; x < this.map[y].length; x++) {
                 let tile = this.map[y][x];
                 tile.draw(camera);
+            }
+        }
+    }
+
+    drawTroop(camera){
+        for (let y = 0; y < this.map.length; y++) {
+            for (let x = 0; x < this.map[y].length; x++) {
+                let tile = this.map[y][x];
+                tile.drawTroop(camera);
             }
         }
     }
@@ -81,6 +93,7 @@ class MapTile{
         const y = center.y;
         if (this.tileX + this.tileY == 0){
             //console.log(x, y);
+            //console.log(x);
         }
 
         //console.log(TileColor[this.type]);
@@ -98,6 +111,12 @@ class MapTile{
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+    }
+
+    drawTroop(camera){
+        if (this.troop != null) {
+            this.troop.draw(camera);
+        }
     }
 
     isIncludingPoint(px, py, camera){

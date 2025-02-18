@@ -8,6 +8,7 @@ var map = new WorldMap();
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     map.draw(camera);
+    map.drawTroop(camera);
 }
 
 canvas.addEventListener("mousedown", function(mouse){

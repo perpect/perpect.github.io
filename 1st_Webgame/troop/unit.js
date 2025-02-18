@@ -1,7 +1,8 @@
 class Unit extends Troop {
     constructor(tileX, tileY, unitType, reinforcement = null) {
+        console.log(unitType.size);
+        super(tileX, tileY, unitType.size, false);
         this.unitType = unitType;
-        super(tileX, tileY, false);
         this.hp = unitType.hp;
         this.atk = unitType.atk;
         this.mp = unitType.mp;
@@ -13,11 +14,16 @@ class Unit extends Troop {
     reinforceUnit(reinforcement){
 
     }
+
+    draw(camera){
+        //console.log(this.getCenter(camera));
+        this.unitType.standardAnimation.default.draw(this.getCenter(camera));
+    }
 }
 
 class UnitType extends TroopType {
-    constructor(name, standardAnimations, hp, atk, mp, skills) {
-        super(name, standardAnimations, hp, atk, mp, skills);
+    constructor(name, standardAnimation, size, hp, atk, mp, skills) {
+        super(name, standardAnimation, size, hp, atk, mp, skills);
     }
 }
 
@@ -27,8 +33,8 @@ class TestUnit extends Unit {
     }
 }
 
-class TestUnitType extends TestUnitType {
+class TestUnitType extends UnitType {
     constructor() {
-        super("테스트");
+        super("테스트", new TestUnitStandardAnimation(), 100, 10, 2, 0, []);
     }
 }
