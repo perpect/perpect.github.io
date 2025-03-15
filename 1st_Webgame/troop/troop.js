@@ -8,11 +8,9 @@ class Troop {
     }
 
     getCenter(camera, tileSize = 100){
-        tileSize = tileSize * camera.zoom;
-        const x = this.tileX * tileSize * SQRT3 - (this.tileY + 0) * tileSize * SQRT3 / 2 - camera.x;
-        const y = (this.tileY + 0) * tileSize * 3 / 2 - camera.y;
+        let center = Utility.getCenter(this.tileX, this.tileY, tileSize, camera);
         const troopSize = this.size * camera.zoom;
-        return { x : x - troopSize / 2, y : y - troopSize / 2, size : troopSize };
+        return { x : center.x - troopSize / 2, y : center.y - troopSize / 2, size : troopSize };
     }
 }
 

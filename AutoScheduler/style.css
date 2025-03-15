@@ -1,0 +1,32 @@
+th, td {
+    border: 1px solid;
+    border-collapse: collapse;
+    padding: 5px 15px;
+    text-align: center;
+}
+
+th:first-child, td:first-child {
+    padding: 5px 5px;
+}
+th:first-child{
+    border-radius: 10px 0px 0px 0px;
+}
+th:last-child{
+    border-radius: 0px 10px 0px 0px;
+}
+tbody > tr:last-child > td:first-child{
+    border-radius: 0px 0px 0px 10px;
+}
+tbody > tr:last-child > td:last-child{
+    border-radius: 0px 0px 10px 0px;
+}
+.SatColor{
+    background-color: rgb(171, 205, 255);
+}
+.SunColor{
+    background-color: rgb(255, 171, 171);
+}
+.rowContent{
+    display: flex;
+    flex-direction: row;
+}

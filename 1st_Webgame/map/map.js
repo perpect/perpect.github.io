@@ -16,7 +16,7 @@ class WorldMap{
         this.newLine(5);
         this.newLine(6);
         this.newLine(7);
-        this.map[2][2].type = new WaterTile();
+        //this.map[2][2].type = new WaterTile();
         this.map[3][0].type = new NoneTile();
         this.map[4][0].type = new NoneTile();
         this.map[4][1].type = new NoneTile();
@@ -24,8 +24,9 @@ class WorldMap{
         this.map[4][6].type = new NoneTile();
         this.map[4][5].type = new NoneTile();
         this.map[0][0].troop = new TestUnit(0, 0);
+        this.map[0][1].troop = new TestUnit(1, 0);
         this.map[1][1].troop = new TestUnit(1, 1);
-        this.map[1][2].troop = new TestUnit(1, 2);
+        this.map[2][1].troop = new TestUnit(1, 2);
         this.map[3][3].troop = new TestUnit(3, 3);
     }
 
@@ -58,11 +59,16 @@ class WorldMap{
         for (let y = 0; y < this.map.length; y++) {
             for (let x = 0; x < this.map[y].length; x++) {
                 let tile = this.map[y][x];
-                if (tile.isIncludingPoint(px, py, camera)){
-                    console.log("(" + x + ", " + y + ")");
+                if (tile.isIncludingPoint(px, py, camera)){    
+                    return {x : x, y : y};
                 }
             }
         }
+        return null;
+    }
+
+    getTroop(x, y){
+        return this.map[y][x].troop;
     }
 }
 
@@ -76,10 +82,7 @@ class MapTile{
     }
 
     getCenter(camera){
-        const size = this.size * camera.zoom;
-        const x = this.tileX * size * SQRT3 - this.tileY * size * SQRT3 / 2 - camera.x;
-        const y = this.tileY * size * 3 / 2 - camera.y;
-        return { x : x, y : y, size : size };
+        return Utility.getCenter(this.tileX, this.tileY, this.size, camera);
     }
 
     draw(camera){

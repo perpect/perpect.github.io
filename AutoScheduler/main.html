@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoScheduler</title>
+    <link rel="stylesheet" href="./style.css" type="text/css" />
+</head>
+<body>
+    <div class="rowContent">
+        <div id="mainEdit"></div>
+        <div>
+            <div class="rowContent">
+                <div>주</div>
+                <div>야</div>
+                <div>비</div>
+                <div>짱</div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="./ScheduleTable.js"></script>
+<script>
+    const a = new Person("A", new Date(2024, 1));
+    const b = new Person("B", new Date(2024, 2));
+    const c = new Person("C", new Date(2024, 7));
+    const d = new Person("D", new Date(2024, 7));
+    const p = new PeopleInfo([a, b, c, d]);
+    const s = new ScheduleTable(p, new Date(2025, 3));
+    s.insertToHTML(document.getElementById("mainEdit"));
+</script>
+</html>

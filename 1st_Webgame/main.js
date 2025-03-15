@@ -4,18 +4,20 @@ const ctx = canvas.getContext("2d");
 var camera = new Camera(0, 0);
 var dragPoint = { x : 0, y : 0, isDrag : false };
 var map = new WorldMap();
+var userMenu = new UnitMenu();
+var selectedUnit = null;
 
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     map.draw(camera);
     map.drawTroop(camera);
+    userMenu.draw();
 }
 
 canvas.addEventListener("mousedown", function(mouse){
     dragPoint.x = mouse.x + camera.x;
     dragPoint.y = mouse.y + camera.y;
     dragPoint.isDrag = true;
-    map.isIncludingPoint(mouse.x, mouse.y, camera);
     //console.log(camera);
 }, false);
 
@@ -27,6 +29,12 @@ canvas.addEventListener("mousemove", function(mouse){
 
 canvas.addEventListener("mouseup", function(mouse){
     dragPoint.isDrag = false;
+    selectedTile = map.isIncludingPoint(mouse.x, mouse.y, camera);
+    if (selectedTile != null) {
+        selectedUnit = map.getTroop(selectedTile.x, selectedTile.y);
+        console.log(selectedTile);
+        console.log(selectedUnit);
+    }
 }, false);
 
 canvas.addEventListener("wheel", function(mouse){
