@@ -3,10 +3,21 @@ th, td {
     border-collapse: collapse;
     padding: 5px 15px;
     text-align: center;
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(3.2px);
+    -webkit-backdrop-filter: blur(3.2px);
+    border: 1px solid rgba(212, 212, 212, 0.69);
 }
-
 th:first-child, td:first-child {
     padding: 5px 5px;
+}
+td:nth-child(n+2){
+    background-color: rgb(255, 255, 255);
+    transition: 0.2s ease-in;
+}
+td:nth-child(n+2):hover{
+    background-color: rgb(113, 180, 255);
 }
 th:first-child{
     border-radius: 10px 0px 0px 0px;
@@ -29,4 +40,40 @@ tbody > tr:last-child > td:last-child{
 .rowContent{
     display: flex;
     flex-direction: row;
+}
+div .scheduleButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width:50px;
+    height: 50px;
+    margin: 5px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(3.2px);
+    -webkit-backdrop-filter: blur(3.2px);
+    border: 1px solid rgba(212, 212, 212, 0.69);
+    border-radius: 16px;
+    transition: 0.2s ease-out;
+    font-weight: bold;
+}
+
+div .scheduleButton:hover {
+    transform:scale(1.1); 
+}
+
+.dayColor {
+    color: rgb(29, 29, 29);
+    background-color: rgb(65, 154, 255);
+}
+.nightColor{
+    color: rgb(29, 29, 29);
+    background-color: rgb(236, 255, 65);
+}
+.offColor{
+    color: rgb(29, 29, 29);
+    background-color: rgb(255, 111, 106);
+}
+.allColor{
+    color: rgb(236, 236, 236);
+    background-color: rgb(29, 29, 29);
 }
