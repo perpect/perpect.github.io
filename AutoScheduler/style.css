@@ -42,6 +42,7 @@ tbody > tr:last-child > td:last-child{
     flex-direction: row;
 }
 div .scheduleButton {
+    font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -54,7 +55,6 @@ div .scheduleButton {
     border: 1px solid rgba(212, 212, 212, 0.69);
     border-radius: 16px;
     transition: 0.2s ease-out;
-    font-weight: bold;
 }
 
 div .scheduleButton:hover {
@@ -76,4 +76,8 @@ div .scheduleButton:hover {
 .allColor{
     color: rgb(236, 236, 236);
     background-color: rgb(29, 29, 29);
+}
+.selectedBorder{
+    border-color: rgb(0, 102, 255);
+    border-width: 5px;
 }

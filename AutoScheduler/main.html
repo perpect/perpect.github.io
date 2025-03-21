@@ -10,7 +10,7 @@
     <div class="rowContent">
         <div id="mainEdit"></div>
         <div>
-            <div class="rowContent">
+            <div id="scheduleButtons" class="rowContent">
                 <div class="scheduleButton dayColor">주</div>
                 <div class="scheduleButton nightColor">야</div>
                 <div class="scheduleButton offColor">비</div>
@@ -20,6 +20,7 @@
     </div>
 </body>
 <script src="./ScheduleTable.js"></script>
+<script src="./controller.js"></script>
 <script>
     const a = new Person("A", new Date(2024, 1));
     const b = new Person("B", new Date(2024, 2));
@@ -28,5 +29,13 @@
     const p = new PeopleInfo([a, b, c, d]);
     const s = new ScheduleTable(p, new Date(2025, 3));
     s.insertToHTML(document.getElementById("mainEdit"));
+    
+    const scheduleButtonDict = {
+        "주" : new ScheduleButton("day", "주"),
+        "야" : new ScheduleButton("night", "야"),
+        "비" : new ScheduleButton("off", "비"),
+        "짱" : new ScheduleButton("all", "짱"),
+        "휴" : new ScheduleButton("vacation", "휴")
+    };
 </script>
 </html>
