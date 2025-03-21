@@ -54,7 +54,7 @@ class ScheduleTable {
         }
     }
 
-    insertToHTML(parentElem){
+    insertTo(parentElem){
         parentElem.appendChild(this.table);
     }
 }

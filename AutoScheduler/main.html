@@ -10,15 +10,17 @@
     <div class="rowContent">
         <div id="mainEdit"></div>
         <div>
+            <div id="monthControl" class="center rowContent">
+                <div width="10px" id="prev-page"></div>
+                <h3 id="monthDisplay">3월</h3>
+                <div width="10px" id="next-page"></div>
+            </div>
             <div id="scheduleButtons" class="rowContent">
-                <div class="scheduleButton dayColor">주</div>
-                <div class="scheduleButton nightColor">야</div>
-                <div class="scheduleButton offColor">비</div>
-                <div class="scheduleButton allColor">짱</div>
             </div>
         </div>
     </div>
 </body>
+<script src="./ScheduleButton.js"></script>
 <script src="./ScheduleTable.js"></script>
 <script src="./controller.js"></script>
 <script>
@@ -28,14 +30,15 @@
     const d = new Person("D", new Date(2024, 7));
     const p = new PeopleInfo([a, b, c, d]);
     const s = new ScheduleTable(p, new Date(2025, 3));
-    s.insertToHTML(document.getElementById("mainEdit"));
+    s.insertTo(document.getElementById("mainEdit"));
     
-    const scheduleButtonDict = {
-        "주" : new ScheduleButton("day", "주"),
-        "야" : new ScheduleButton("night", "야"),
-        "비" : new ScheduleButton("off", "비"),
-        "짱" : new ScheduleButton("all", "짱"),
-        "휴" : new ScheduleButton("vacation", "휴")
-    };
+    const scheduleBtnCon = new ScheduleButtonController({
+        "day" : "주",
+        "night" : "야",
+        "off" : "비",
+        "all" : "짱",
+        "vacation" : "휴"
+    });
+    scheduleBtnCon.insertTo(document.getElementById("scheduleButtons"));
 </script>
 </html>
