@@ -9,6 +9,12 @@
     flex-direction: row;
 }
 
+#background {
+    display: flex;
+    flex-direction: column;
+    width : 1500px;
+}
+
 div .scheduleButton {
     font-weight: bold;
     display: flex;
