@@ -27,30 +27,39 @@ class ScheduleTable {
         this.table = document.createElement("table");
         dateInfo.setDate(0);
         this.dayLength = dateInfo.getDate();
-        this.tableHead = document.createElement('thead');
-        for (let i = 0; i < peopleInfo.length + 1; i++) {
-            const newCell = document.createElement('th');
-            if (i > 0)
-                newCell.insertAdjacentHTML("afterbegin", peopleInfo.getPerson(i - 1).name);
-            this.tableHead.append(newCell);
-        }
-        this.table.append(this.tableHead);
-        this.days = [];
+        this.firstRow = this.table.insertRow();
+        this.tableInfo = [[]];
         dateInfo.setDate(1);
         let dateCalc = dateInfo.getDay();
-        for (let i = 1; i < this.dayLength + 1; i++) {
-            const newRow = this.table.insertRow();
-            const newCell = newRow.insertCell();
-            newCell.insertAdjacentHTML("afterbegin", i);
+        for (let i = 0; i < this.dayLength + 1; i++) {
+            const dayCell = document.createElement('th');
+            this.tableInfo[0].push(dayCell);
+            this.firstRow.append(dayCell);
+
+            if (i == 0) continue;
+            dayCell.classList.add("dayCell");
+            dayCell.insertAdjacentHTML("afterbegin", i);
             if (dateCalc == 0)
-                newCell.classList.add("SunColor");
+                dayCell.classList.add("SunColor");
             if (dateCalc == 6)
-                newCell.classList.add("SatColor");
-            this.days.push(newRow);
-            for (let j = 0; j < peopleInfo.length; j++) {
-                newRow.insertCell();
-            }
+                dayCell.classList.add("SatColor");
             dateCalc = (dateCalc + 1) % 7;
+        }
+
+        for (let i = 1; i < peopleInfo.length + 1; i++) {
+            this.tableInfo.push([]);
+            const nowRow = this.table.insertRow();
+            const personCell = nowRow.insertCell();
+            personCell.insertAdjacentHTML("afterbegin", peopleInfo.getPerson(i - 1).name);
+            personCell.classList.add("nameCell");
+            nowRow.append(personCell);
+            for (let j = 0; j < this.dayLength; j++) {
+                const newCell = nowRow.insertCell();
+                nowRow.append(newCell);
+                newCell.classList.add("dayCell");
+                this.tableInfo[i].push(newCell);
+            }
+            this.table.append(nowRow);
         }
     }
 

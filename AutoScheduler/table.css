@@ -1,0 +1,47 @@
+th, td {
+    border: 1px solid;
+    border-collapse: collapse;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(3.2px);
+    -webkit-backdrop-filter: blur(3.2px);
+    border: 1px solid rgba(212, 212, 212, 0.69);
+}
+th:first-child, td:first-child {
+    padding: 5px 5px;
+}
+td:nth-child(n+2){
+    background-color: rgb(255, 255, 255);
+    transition: 0.2s ease-in;
+}
+td:nth-child(n+2):hover{
+    background-color: rgb(113, 180, 255);
+}
+th:first-child{
+    border-radius: 10px 0px 0px 0px;
+}
+th:last-child{
+    border-radius: 0px 10px 0px 0px;
+}
+tbody > tr:last-child > td:first-child{
+    border-radius: 0px 0px 0px 10px;
+}
+tbody > tr:last-child > td:last-child{
+    border-radius: 0px 0px 10px 0px;
+}
+.SatColor{
+    background-color: rgb(171, 205, 255);
+}
+.SunColor{
+    background-color: rgb(255, 171, 171);
+}
+.dayCell {
+    width: 30px;
+}
+.nameCell {
+    width: 100px;
+}
+tr{
+    height: 30px;
+}
