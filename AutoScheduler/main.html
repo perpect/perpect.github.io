@@ -10,16 +10,23 @@
 <body>
     
     <div id="background">
-        <div id="mainEdit"></div>
-        <div>
+        <div id="tabMgr" class="rowContent"></div>
+        <div id="tab-0">
             <div id="monthControl" class="center rowContent">
                 <div width="10px" id="prev-page"></div>
-                <h3 id="monthDisplay">3월</h3>
+                <h2 id="monthDisplay">3월</h2>
                 <div width="10px" id="next-page"></div>
             </div>
-            <div id="scheduleButtons" class="rowContent">
+            <div id="scheduleTable" class="center"></div>
+            <div>
+                <div id="scheduleButtons" class="rowContent">
+                </div>
             </div>
         </div>
+        <div id="tab-1"></div>
+        <div id="tab-2"></div>
+        <div id="tab-3"></div>
+        <div id="tab-4"></div>
     </div>
 </body>
 <script src="./ScheduleButton.js"></script>
@@ -32,7 +39,7 @@
     const d = new Person("D", new Date(2024, 7));
     const p = new PeopleInfo([a, b, c, d]);
     const s = new ScheduleTable(p, new Date(2025, 3));
-    s.insertTo(document.getElementById("mainEdit"));
+    s.insertTo(document.getElementById("scheduleTable"));
     
     const scheduleBtnCon = new ScheduleButtonController({
         "day" : "주",
@@ -42,5 +49,14 @@
         "vacation" : "휴"
     });
     scheduleBtnCon.insertTo(document.getElementById("scheduleButtons"));
+
+    const tabBtnCon = new TabButtonController(0, [
+        [0, "병사 근무표 보기", "calendar"],
+        [1, "간부 근무표 보기", "briefcase"],
+        [2, "근무표 수정", "pencil"],
+        [3, "인원 관리", "users"],
+        [4, "근무 자동 생성", "play"]
+    ]);
+    tabBtnCon.insertTo(document.getElementById("tabMgr"));
 </script>
 </html>

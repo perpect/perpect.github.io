@@ -13,6 +13,44 @@
     display: flex;
     flex-direction: column;
     width : 1500px;
+    background: #f0f0f0;
+}
+
+#tabMgr{
+    margin-top: 30px;
+    margin-bottom: 15px;
+    display:flex;
+    justify-content: space-evenly;
+}
+
+.tabBox{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    font-size:20px;
+    font-weight: 700;
+    width: 200px;
+    padding:10px;
+
+    color: #090909;
+    padding: 10px 20px;
+    font-size: 18px;
+    border-radius: 0.5em;
+    background: #f0f0f0;
+    cursor: pointer;
+    border: 1px solid #f0f0f0;
+    transition: all 0.1s;
+    box-shadow: 6px 6px 12px #d1d1d1, -6px -6px 12px #ffffff;
+}
+
+.active {
+    padding: 12px 20px 8px 20px;
+    box-shadow: inset 4px 4px 12px #c5c5c5, inset -4px -4px 12px #ffffff;
+}  
+
+.full-width{
+    width:100%;
 }
 
 div .scheduleButton {
