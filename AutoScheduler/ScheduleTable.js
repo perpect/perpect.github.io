@@ -26,12 +26,12 @@ class ScheduleTable {
     constructor(peopleInfo = None, dateInfo = None) {
         this.table = document.createElement("table");
         dateInfo.setDate(0);
-        this.dayLength = dateInfo.getDate();
+        let dayLength = dateInfo.getDate();
         this.firstRow = this.table.insertRow();
         this.tableInfo = [[]];
         dateInfo.setDate(1);
         let dateCalc = dateInfo.getDay();
-        for (let i = 0; i < this.dayLength + 1; i++) {
+        for (let i = 0; i < dayLength + 1; i++) {
             const dayCell = document.createElement('th');
             this.tableInfo[0].push(dayCell);
             this.firstRow.append(dayCell);
@@ -53,7 +53,7 @@ class ScheduleTable {
             personCell.insertAdjacentHTML("afterbegin", peopleInfo.getPerson(i - 1).name);
             personCell.classList.add("nameCell");
             nowRow.append(personCell);
-            for (let j = 0; j < this.dayLength; j++) {
+            for (let j = 0; j < dayLength; j++) {
                 const newCell = nowRow.insertCell();
                 nowRow.append(newCell);
                 newCell.classList.add("dayCell");
@@ -66,4 +66,22 @@ class ScheduleTable {
     insertTo(parentElem){
         parentElem.appendChild(this.table);
     }
+
+    chageCell(peopleId, day, schedule){
+        this.tableInfo[peopleId + 1][day].classList.add(schedule + "Color");
+    }
+}
+
+class ScheduleTableMgr{
+    constructor(){
+        
+    }
+}
+
+function initTableBtn(){
+    let prevBtn = document.getElementById("prevBtn");
+    let nextBtn = document.getElementById("nextBtn");
+    prevBtn.addEventListener("click", (e)=>{
+        console.log(e);
+    });
 }

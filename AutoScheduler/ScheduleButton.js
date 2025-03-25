@@ -12,12 +12,12 @@ class ScheduleButton {
     }
 }
 
-class ScheduleButtonController{
-    constructor(btnData) {
-        this.btnData = btnData;
+class ScheduleController{
+    constructor(scheduleTypeData) {
+        this.scheduleTypeData = scheduleTypeData;
         this.scheduleButtons = [];
-        Object.keys(btnData).forEach(id => {
-            this.scheduleButtons.push(new ScheduleButton(id, btnData[id]));
+        scheduleTypeData.forEach(data => {
+            this.scheduleButtons.push(new ScheduleButton(data[0], data[1]));
         });
     }
 
@@ -25,7 +25,7 @@ class ScheduleButtonController{
         return Object.keys(this.scheduleButtons);
     }
 
-    insertTo(parent){
+    insertBtnTo(parent){
         this.scheduleButtons.forEach(button => {
             parent.appendChild(button.elem);
         });

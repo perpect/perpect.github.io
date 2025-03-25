@@ -30,11 +30,13 @@ class TabButton{
             return;
         this.button.classList.add("active");
         this.mgr.selectBtn(this.id);
+        document.getElementById("tab-"+this.id).style.display = 'block';
     }
 
     off(){
         this.button.classList.remove("active");
         this.selected = false;
+        document.getElementById("tab-"+this.id).style.display = 'none';
     }
 }
 
@@ -47,6 +49,10 @@ class TabButtonController{
             this.tabButtons[data[0]] = new TabButton(data, initialSelect == data[0], this);
         });
         this.selectedBtn = this.tabButtons[initialSelect];
+        Object.keys(this.tabButtons).forEach((id)=>{
+            if (this.nowTabId != id)
+                this.tabButtons[id].off();
+        });
     }
 
     selectBtn(id){
@@ -54,9 +60,7 @@ class TabButtonController{
             return;
         this.selectedBtn.off();
         this.selectedBtn = this.tabButtons[id];
-        document.getElementById("tab-"+this.nowTabId).style.display = 'none';
         this.nowTabId = id;
-        document.getElementById("tab-"+this.nowTabId).style.display = 'block';
     }
 
     get keys(){
