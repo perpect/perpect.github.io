@@ -73,15 +73,70 @@ class ScheduleTable {
 }
 
 class ScheduleTableMgr{
-    constructor(){
-        
+    constructor(date){
+        this.scheduleTables = {};
+        this.mainScheduleTable = {};
+        this.date = new Date(date.getFullYear(), date.getMonth());
     }
-}
 
-function initTableBtn(){
-    let prevBtn = document.getElementById("prevBtn");
-    let nextBtn = document.getElementById("nextBtn");
-    prevBtn.addEventListener("click", (e)=>{
-        console.log(e);
-    });
+    add(schedule, date = null, isMain = false){
+        if (date == null)
+            date = this.date;
+        else {
+            date.setMonth(date.getMonth());
+            date.setFullYear(date.getFullYear());
+        }
+        if (date in this.scheduleTables) {
+            if (isMain)
+                this.mainScheduleTable[date] = this.scheduleTables[date].length;
+            this.scheduleTables[date].push(schedule);
+        } else {
+            this.scheduleTables[date] = [schedule];
+            this.mainScheduleTable[date] = 0;
+        }
+    }
+
+    get year(){
+        return this.date.getFullYear();
+    }
+
+    get month(){
+        return this.date.getMonth();
+    }
+
+    getSchedule(date = null){
+        if (date == null)
+            date = this.date;
+        if (this.isValidDate(date))
+            return this.scheduleTables[date][this.mainScheduleTable[date]];
+        else
+            return null;
+    }
+
+    setDate(date){
+        this.date.setFullYear(date.getFullYear());
+        this.date.setMonth(date.getMonth());
+    }
+
+    prevMonth(){
+        this.date.setMonth(this.date.getMonth() - 1);
+    }
+
+    nextMonth(){
+        this.date.setMonth(this.date.getMonth() + 1);
+    }
+
+    isValidDate(date = null){
+        if (date == null)
+            date = this.date;
+        return date in this.scheduleTables;
+    }
+
+    update(table){
+        if (table.children[0] != undefined)
+            table.removeChild(table.children[0]);
+        let schedule = this.getSchedule(this.date);
+        if (this.isValidDate())
+            schedule.insertTo(table);
+    }
 }

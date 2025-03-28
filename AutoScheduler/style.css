@@ -68,7 +68,7 @@
 }
 
 .smallBtn:active {
-    padding: 11px 20px 9px 20px;
+    padding: 11px 15px 9px 15px;
     box-shadow: inset 4px 4px 12px #c5c5c5, inset -4px -4px 12px #ffffff;
 }
 

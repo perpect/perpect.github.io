@@ -63,13 +63,20 @@
 <script src="./ScheduleTable.js"></script>
 <script src="./controller.js"></script>
 <script>
+    const today = new Date();
+
+    const privateScheduleTable = document.getElementById("scheduleTable");
+    const privateMonthDisplay = document.getElementById("monthDisplay");
+
     const a = new Person("이정민", new Date(2024, 1));
     const b = new Person("B", new Date(2024, 2));
     const c = new Person("C", new Date(2024, 7));
     const d = new Person("D", new Date(2024, 7));
     const p = new PeopleInfo([a, b, c, d]);
-    const s = new ScheduleTable(p, new Date(2025, 3));
-    s.insertTo(document.getElementById("scheduleTable"));
+
+    var scheduleTableMgr = new ScheduleTableMgr(today);
+    scheduleTableMgr.add(new ScheduleTable(p, today));
+    scheduleTableMgr.update(privateScheduleTable);
     
     const scheduleBtnCon = new ScheduleController([
         ["day", "주"],
@@ -88,5 +95,18 @@
         [4, "근무 자동 생성", "play"]
     ]);
     tabBtnCon.insertTo(document.getElementById("tabMgr"));
+
+    let prevBtn = document.getElementById("prev-page");
+    prevBtn.addEventListener("click", (e)=>{
+        scheduleTableMgr.prevMonth();
+        scheduleTableMgr.update(privateScheduleTable);
+        privateMonthDisplay.innerHTML = scheduleTableMgr.month + 1 + "월";
+    });
+    nextBtn = document.getElementById("next-page");
+    nextBtn.addEventListener("click", (e)=>{
+        scheduleTableMgr.nextMonth();
+        scheduleTableMgr.update(privateScheduleTable);
+        privateMonthDisplay.innerHTML = scheduleTableMgr.month + 1 + "월";
+    });
 </script>
 </html>
