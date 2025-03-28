@@ -28,6 +28,7 @@ class ScheduleButton {
     }
 }
 
+// TODO : 라디오 버튼과 동일한 효과를 구현했는데 라디오 버튼으로 바꾸는 것도 고려해볼 것
 class ScheduleController{
     constructor(initialSelect, scheduleTypeData) {
         this.scheduleTypeData = scheduleTypeData;

@@ -76,6 +76,7 @@
 <script>
     const today = new Date();
 
+    // TODO : 월 바꾸는 거 정도는 그냥 클래스로 만들것
     const privateScheduleTable = document.getElementById("scheduleTable");
     const privateMonthDisplay = document.getElementById("monthDisplay");
     const privateYearDisplay = document.getElementById("yearDisplay");
@@ -102,6 +103,7 @@
         ["vacation", "휴"]
     ]);
 
+    // TODO : 구성생각 후 수정할 것
     editScheduleBtn.addEventListener("click", (e)=>{
         if (privateScheduleEditMod){
             for (let i = 0; i < scheduleBtnCon.keys.length; i++)
