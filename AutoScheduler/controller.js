@@ -9,7 +9,7 @@ class TabButton{
         this.button = document.createElement("div");
         this.button.classList.add("tabBox");
         if (this.selected)
-            this.button.classList.add("active");
+            this.button.classList.add("activeBox");
 
         this.icon = new Image(20, 20);
         this.icon.src = "./icons/" + this.iconName + ".png";

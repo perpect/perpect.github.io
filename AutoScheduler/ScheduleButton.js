@@ -1,33 +1,63 @@
 class ScheduleButton {
-    constructor(id, name) {
+    constructor(id, name, selected, mgr) {
         this.id = id;
         this.name = name;
-        this.elem = document.createElement("div");
-        this.elem.classList.add("scheduleButton");
-        this.elem.classList.add(id + "Color");
-        this.elem.addEventListener("click", (e)=>{
-            console.log(name);
+        this.mgr = mgr;
+        this.button = document.createElement("div");
+        this.button.classList.add("scheduleButton");
+        this.button.classList.add(id + "Color");
+        this.selected = selected;
+        if (this.selected)
+            this.button.classList.add("selectedScheduleBtn");
+        this.button.addEventListener("click", (e)=>{
+            this.click();
         });
-        this.elem.insertAdjacentHTML("afterbegin", name);
+        this.button.insertAdjacentHTML("afterbegin", name);
+    }
+
+    click(){
+        if (this.selected)
+            return;
+        this.button.classList.add("selectedScheduleBtn");
+        this.mgr.selectBtn(this.id);
+    }
+
+    off(){
+        this.button.classList.remove("selectedScheduleBtn");
+        this.selected = false;
     }
 }
 
 class ScheduleController{
-    constructor(scheduleTypeData) {
+    constructor(initialSelect, scheduleTypeData) {
         this.scheduleTypeData = scheduleTypeData;
-        this.scheduleButtons = [];
+        this.scheduleButtons = {};
+        this.nowId = initialSelect;
         scheduleTypeData.forEach(data => {
-            this.scheduleButtons.push(new ScheduleButton(data[0], data[1]));
+            this.scheduleButtons[data[0]] = new ScheduleButton(data[0], data[1], initialSelect == data[0], this);
         });
+        this.selectedBtn = this.scheduleButtons[initialSelect];
+        Object.keys(this.scheduleButtons).forEach((id)=>{
+            if (this.nowId != id)
+                this.scheduleButtons[id].off();
+        });
+    }
+
+    selectBtn(id){
+        if (this.nowId == id)
+            return;
+        this.selectedBtn.off();
+        this.selectedBtn = this.scheduleButtons[id];
+        this.nowId = id;
     }
 
     get keys(){
         return Object.keys(this.scheduleButtons);
     }
 
-    insertBtnTo(parent){
-        this.scheduleButtons.forEach(button => {
-            parent.appendChild(button.elem);
+    insertTo(parent){
+        Object.keys(this.scheduleButtons).forEach(id => {
+            parent.appendChild(this.scheduleButtons[id].button);
         });
     }
 }

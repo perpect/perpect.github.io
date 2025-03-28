@@ -12,19 +12,30 @@
     <div id="background">
         <div id="tabMgr" class="rowContent"></div>
         <div id="tab-0">
-            <div id="monthControl" class="center rowContent">
-                <div width="10px" id="prev-page" class="smallBtn" style="--w: 30px --h:10px"><img src="./icons/prev.png"></div>
-                <h2 id="monthDisplay">3월</h2>
-                <div width="10px" id="next-page" class="smallBtn"><img src="./icons/next.png"></div>
+            <div id="monthControl">
+                <div id="yearDisplay" class="center"></div>
+                <div class="center rowContent">
+                    <div width="10px" id="prev-page" class="smallBtn" style="--w: 30px --h:10px"><img src="./icons/prev.png"></div>
+                    <div id="monthDisplay"></div>
+                    <div width="10px" id="next-page" class="smallBtn"><img src="./icons/next.png"></div>
+                </div>
             </div>
             <div id="scheduleTable" class="center"></div>
             <div class="center">
-                <div class="smallBtn editBtn">
+                <div id="editScheduleBtn" class="smallBtn editBtn">
                     <img src="./icons/pencil.png" width="16px" height="16px">
                     <div class="center full-width">수정하기</div>
                 </div>
             </div>
-            <div id="scheduleButtons" class="rowContent"></div>
+            <div id="editScheduleTools center">
+                <div class="rowContent center">
+                    <div class="smallBtn center">0</div>
+                    <div class="smallBtn center">1</div>
+                    <div class="smallBtn center">2</div>
+                    <div class="smallBtn center">3</div>
+                </div>
+                <div id="scheduleButtons" class="rowContent center"></div>
+            </div>
         </div>
         <div id="tab-1">
             <p>And I always find, yeah, I always find something wrong</p>
@@ -67,6 +78,11 @@
 
     const privateScheduleTable = document.getElementById("scheduleTable");
     const privateMonthDisplay = document.getElementById("monthDisplay");
+    const privateYearDisplay = document.getElementById("yearDisplay");
+
+    const editScheduleBtn = document.getElementById("editScheduleBtn");
+    const scheduleButtonsElem = document.getElementById("scheduleButtons");
+    var privateScheduleEditMod = false;
 
     const a = new Person("이정민", new Date(2024, 1));
     const b = new Person("B", new Date(2024, 2));
@@ -78,14 +94,22 @@
     scheduleTableMgr.add(new ScheduleTable(p, today));
     scheduleTableMgr.update(privateScheduleTable);
     
-    const scheduleBtnCon = new ScheduleController([
+    const scheduleBtnCon = new ScheduleController("day", [
         ["day", "주"],
         ["night", "야"],
         ["off", "비"],
         ["all", "짱"],
         ["vacation", "휴"]
     ]);
-    scheduleBtnCon.insertBtnTo(document.getElementById("scheduleButtons"));
+
+    editScheduleBtn.addEventListener("click", (e)=>{
+        if (privateScheduleEditMod){
+            for (let i = 0; i < scheduleBtnCon.keys.length; i++)
+                scheduleButtonsElem.removeChild(scheduleButtonsElem.children[0]);
+        }else
+            scheduleBtnCon.insertTo(scheduleButtonsElem);
+        privateScheduleEditMod = !privateScheduleEditMod;
+    });
 
     const tabBtnCon = new TabButtonController(0, [
         [0, "병사 근무표 보기", "calendar"],
@@ -95,17 +119,21 @@
         [4, "근무 자동 생성", "play"]
     ]);
     tabBtnCon.insertTo(document.getElementById("tabMgr"));
+    privateYearDisplay.innerHTML = scheduleTableMgr.year + "년";
+    privateMonthDisplay.innerHTML = scheduleTableMgr.month + 1 + "월";
 
     let prevBtn = document.getElementById("prev-page");
     prevBtn.addEventListener("click", (e)=>{
         scheduleTableMgr.prevMonth();
         scheduleTableMgr.update(privateScheduleTable);
+        privateYearDisplay.innerHTML = scheduleTableMgr.year + "년";
         privateMonthDisplay.innerHTML = scheduleTableMgr.month + 1 + "월";
     });
     nextBtn = document.getElementById("next-page");
     nextBtn.addEventListener("click", (e)=>{
         scheduleTableMgr.nextMonth();
         scheduleTableMgr.update(privateScheduleTable);
+        privateYearDisplay.innerHTML = scheduleTableMgr.year + "년";
         privateMonthDisplay.innerHTML = scheduleTableMgr.month + 1 + "월";
     });
 </script>

@@ -7,6 +7,7 @@ th, td {
     backdrop-filter: blur(3.2px);
     -webkit-backdrop-filter: blur(3.2px);
     border: 1px solid rgba(212, 212, 212, 0.69);
+    font-size: large;
 }
 th:first-child, td:first-child {
     padding: 5px 5px;
@@ -16,7 +17,7 @@ td:nth-child(n+2){
     transition: 0.2s ease-in;
 }
 td:nth-child(n+2):hover{
-    background-color: rgb(113, 180, 255);
+    background-color: rgb(167, 255, 179);
 }
 th:first-child{
     border-radius: 10px 0px 0px 0px;
@@ -37,11 +38,11 @@ tbody > tr:last-child > td:last-child{
     background-color: rgb(255, 171, 171);
 }
 .dayCell {
-    width: 30px;
+    width: 45px;
 }
 .nameCell {
     width: 100px;
 }
 tr{
-    height: 30px;
+    height: 45px;
 }
