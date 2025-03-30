@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AutoScheduler</title>
     <link rel="stylesheet" href="./table.css" type="text/css" />
+    <link rel="stylesheet" href="./tab.css" type="text/css" />
     <link rel="stylesheet" href="./style.css" type="text/css" />
 </head>
 <body>
-    
     <div id="background">
-        <div id="tabMgr" class="rowContent"></div>
-        <div id="tab-0">
+        <div id="mainTabMgr" class="rowContent"></div>
+        <div id="mainTab-0">
             <div id="monthControl">
                 <div id="yearDisplay" class="center"></div>
                 <div class="center rowContent">
@@ -21,23 +21,12 @@
                 </div>
             </div>
             <div id="scheduleTable" class="center"></div>
-            <div class="center">
-                <div id="editScheduleBtn" class="smallBtn editBtn">
-                    <img src="./icons/pencil.png" width="16px" height="16px">
-                    <div class="center full-width">수정하기</div>
-                </div>
-            </div>
-            <div id="editScheduleTools center">
-                <div class="rowContent center">
-                    <div class="smallBtn center">0</div>
-                    <div class="smallBtn center">1</div>
-                    <div class="smallBtn center">2</div>
-                    <div class="smallBtn center">3</div>
-                </div>
+            <div class="rowContent center">
+                <div class="rowContent center"></div>
                 <div id="scheduleButtons" class="rowContent center"></div>
             </div>
         </div>
-        <div id="tab-1">
+        <div id="mainTab-1">
             <p>And I always find, yeah, I always find something wrong</p>
             <p>You been puttin' up with my shit just way too long</p>
             <p>I'm so gifted at finding what I don't like the most</p>
@@ -51,7 +40,7 @@
             <p>Baby, I got a plan</p>
             <p>Run away fast as you can</p>
         </div>
-        <div id="tab-2">
+        <div id="mainTab-2">
             <p>I got black, I got white, what you want?</p>
             <p>Hop outside a Ghost and hop up in a Phantom</p>
             <p>I know I'm 'bout to blow, I ain't dumb</p>
@@ -62,10 +51,10 @@
             <p>I see two twin opps, leave 'em on a banner</p>
             <p>And I got two thick thots, wanna link the gang, yeah</p>
         </div>
-        <div id="tab-3">
+        <div id="mainTab-3">
             아ㅏㅏㅏ
         </div>
-        <div id="tab-4">
+        <div id="mainTab-4">
             마지막 탭
         </div>
     </div>
@@ -80,10 +69,6 @@
     const privateScheduleTable = document.getElementById("scheduleTable");
     const privateMonthDisplay = document.getElementById("monthDisplay");
     const privateYearDisplay = document.getElementById("yearDisplay");
-
-    const editScheduleBtn = document.getElementById("editScheduleBtn");
-    const scheduleButtonsElem = document.getElementById("scheduleButtons");
-    var privateScheduleEditMod = false;
 
     const a = new Person("이정민", new Date(2024, 1));
     const b = new Person("B", new Date(2024, 2));
@@ -103,24 +88,14 @@
         ["vacation", "휴"]
     ]);
 
-    // TODO : 구성생각 후 수정할 것
-    editScheduleBtn.addEventListener("click", (e)=>{
-        if (privateScheduleEditMod){
-            for (let i = 0; i < scheduleBtnCon.keys.length; i++)
-                scheduleButtonsElem.removeChild(scheduleButtonsElem.children[0]);
-        }else
-            scheduleBtnCon.insertTo(scheduleButtonsElem);
-        privateScheduleEditMod = !privateScheduleEditMod;
-    });
-
     const tabBtnCon = new TabButtonController(0, [
-        [0, "병사 근무표 보기", "calendar"],
-        [1, "간부 근무표 보기", "briefcase"],
+        [0, "병사 근무표", "calendar"],
+        [1, "간부 근무표", "briefcase"],
         [2, "오늘의 병력일보", "pencil"],
         [3, "인원 관리", "users"],
         [4, "근무 자동 생성", "play"]
-    ]);
-    tabBtnCon.insertTo(document.getElementById("tabMgr"));
+    ], "mainTab");
+    tabBtnCon.insertTo(document.getElementById("mainTabMgr"));
     privateYearDisplay.innerHTML = scheduleTableMgr.year + "년";
     privateMonthDisplay.innerHTML = scheduleTableMgr.month + 1 + "월";
 

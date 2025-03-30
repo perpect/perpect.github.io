@@ -28,7 +28,7 @@ class ScheduleButton {
     }
 }
 
-// TODO : 라디오 버튼과 동일한 효과를 구현했는데 라디오 버튼으로 바꾸는 것도 고려해볼 것
+// TODO : 삭제 후 ./controller.js에 있는 매니저로 통합할 것
 class ScheduleController{
     constructor(initialSelect, scheduleTypeData) {
         this.scheduleTypeData = scheduleTypeData;
