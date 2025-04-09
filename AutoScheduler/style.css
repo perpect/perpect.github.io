@@ -16,6 +16,9 @@
     background: #f0f0f0;
 }
 
+#privatePlanRow{
+    width:100%;
+}
 
 #monthDisplay{
     display: flex;

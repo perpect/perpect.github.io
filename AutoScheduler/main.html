@@ -20,10 +20,23 @@
                     <div width="10px" id="next-page" class="smallBtn"><img src="./icons/next.png"></div>
                 </div>
             </div>
-            <div id="scheduleTable" class="center"></div>
-            <div class="rowContent center">
-                <div class="rowContent center"></div>
-                <div id="scheduleButtons" class="rowContent center"></div>
+            
+            <div id="privateTable" class="center"></div>
+            <div id="privateTabCover" class="rowContent">
+                <div id="privateTabMgr"></div>
+                <div id="privateTab-0">
+                    <div id="privatePlanRow" class="rowContent">
+                    </div>
+                </div>
+                <div id="privateTab-1">
+                    
+                </div>
+                <div id="privateTab-2">
+                    
+                </div>
+                <div id="privateTab-3">
+                    
+                </div>
             </div>
         </div>
         <div id="mainTab-1">
@@ -61,12 +74,12 @@
 </body>
 <script src="./ScheduleButton.js"></script>
 <script src="./ScheduleTable.js"></script>
-<script src="./controller.js"></script>
+<script src="./TabController.js"></script>
 <script>
     const today = new Date();
 
     // TODO : 월 바꾸는 거 정도는 그냥 클래스로 만들것
-    const privateScheduleTable = document.getElementById("scheduleTable");
+    const privateScheduleTable = document.getElementById("privateTable");
     const privateMonthDisplay = document.getElementById("monthDisplay");
     const privateYearDisplay = document.getElementById("yearDisplay");
 
@@ -88,16 +101,24 @@
         ["vacation", "휴"]
     ]);
 
-    const tabBtnCon = new TabButtonController(0, [
+    const mainTabCon = new TabButtonController(0, [
         [0, "병사 근무표", "calendar"],
         [1, "간부 근무표", "briefcase"],
         [2, "오늘의 병력일보", "pencil"],
-        [3, "인원 관리", "users"],
-        [4, "근무 자동 생성", "play"]
+        [3, "인원 및 휴일 관리", "users"],
+        [4, "한 눈에 보기", "play"]
     ], "mainTab");
-    tabBtnCon.insertTo(document.getElementById("mainTabMgr"));
+    mainTabCon.insertTo(document.getElementById("mainTabMgr"));
     privateYearDisplay.innerHTML = scheduleTableMgr.year + "년";
     privateMonthDisplay.innerHTML = scheduleTableMgr.month + 1 + "월";
+
+    const privateTabCon = new TabButtonController(0, [
+        [0, "근무표 목록"],
+        [1, "수정하기"],
+        [2, "근무표 자동 생성"],
+        [3, "근무 설정"]
+    ], "privateTab", 0);
+    privateTabCon.insertTo(document.getElementById("privateTabMgr"));
 
     let prevBtn = document.getElementById("prev-page");
     prevBtn.addEventListener("click", (e)=>{

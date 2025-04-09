@@ -16,9 +16,11 @@ class TabButton{
         });
         
         this.labelElem = document.createElement("label");
-        this.icon = new Image(iconSize, iconSize);
-        this.icon.src = "./icons/" + this.iconName + ".png";
-        this.labelElem.appendChild(this.icon);
+        if(this.iconName != undefined){
+            this.icon = new Image(iconSize, iconSize);
+            this.icon.src = "./icons/" + this.iconName + ".png";
+            this.labelElem.appendChild(this.icon);
+        }
         this.labelElem.htmlFor = type + "Radio-" + this.id;
         
         this.nameBox = document.createElement("div");
@@ -36,7 +38,7 @@ class TabButtonController{
         this.prevId = initialSelect;
         this.type = type;
         btnData.forEach(data => {
-            this.tabButtons[data[0]] = new TabButton(data, initialSelect == data[0], this, type, iconSize);        
+            this.tabButtons[data[0]] = new TabButton(data, initialSelect == data[0], this, type, iconSize);     
             document.getElementById(type + "-" + data[0]).style.display = 'none';
         });
         document.getElementById(type + "-" + initialSelect).style.display = 'block';

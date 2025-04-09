@@ -22,13 +22,48 @@ class PeopleInfo {
     // TODO : Save & Load
 }
 
+class ScheduleCard {
+    constructor(type, id, isChecked, mgr, iconSize) {
+        this.id = id;
+        this.mgr = mgr;
+        this.elem = document.createElement("div");
+
+        this.btnCollection = document.createElement("div");
+        this.btnCollection.classList.add("rowContent");
+
+        this.radioElem = document.createElement("input");
+        this.radioElem.type = "radio";
+        this.radioElem.name = type;
+        this.radioElem.value = this.id;
+        this.radioElem.id = type + "Radio-" + this.id;
+        this.radioElem.checked = isChecked;
+        this.radioElem.addEventListener("change", (e) => {
+			this.mgr.select(this.id);
+        });
+
+        this.setMainLabel = document.createElement("label");
+        this.icon = new Image(iconSize, iconSize);
+        this.icon.src = "./icons/" + this.iconName + ".png";
+        this.setMainLabel.appendChild(this.icon);
+        this.setMainLabel.htmlFor = type + "Radio-" + this.id;
+
+        this.copyBtn = document.createElement("div");
+        this.deleteBtn = document.createElement("div");
+        
+        this.elem.appendChild();
+        this.elem
+    }
+}
+
 class ScheduleTable {
     constructor(peopleInfo = None, dateInfo = None) {
         this.table = document.createElement("table");
+        dateInfo.setMonth(dateInfo.getMonth() + 1);
         dateInfo.setDate(0);
         let dayLength = dateInfo.getDate();
         this.firstRow = this.table.insertRow();
         this.tableInfo = [[]];
+        console.log(dateInfo);
         dateInfo.setDate(1);
         let dateCalc = dateInfo.getDay();
         for (let i = 0; i < dayLength + 1; i++) {
@@ -102,6 +137,10 @@ class ScheduleTableMgr{
 
     get month(){
         return this.date.getMonth();
+    }
+
+    insertScheduleCards(parent){
+        parent.appendChild();
     }
 
     getSchedule(date = null){
