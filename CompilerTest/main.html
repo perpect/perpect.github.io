@@ -8,10 +8,25 @@
 </head>
 <body>
     <textarea id="cmd" type="textfield"></textarea>
+    <br>
     <button onclick="console.log(scan(document.getElementById('cmd').value))">Go!</button>
 </body>
 <script src="./Kind.js"></script>
 <script src="./Scan.js"></script>
 <script src="./Parser.js"></script>
 <script src="./Compiler.js"></script>
+<script>
+    document.getElementById('cmd').addEventListener('keydown', function(e) {
+        if (e.key == 'Tab') {
+            e.preventDefault();
+            var start = this.selectionStart;    
+            var end = this.selectionEnd;
+
+            // set textarea value to: text before caret + tab + text after caret
+            this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);// put caret at right position again
+            this.selectionStart =
+            this.selectionEnd = start + 1;
+        }
+    });
+</script>
 </html>
