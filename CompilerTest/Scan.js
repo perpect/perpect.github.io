@@ -9,6 +9,10 @@ function isDigit(c){
     return "0" <= c && c <= "9";
 }
 
+function warning(content){
+    console.warn(content + ":" + scanLine + ":" + scanIdxInLine);
+}
+
 function tokenizerError(content){
     console.error("토큰화 과정 오류:" + content + ":" + scanLine + ":" + scanIdxInLine);
 }
@@ -38,20 +42,21 @@ function scan(source) {
         if (char == '"' || char == "'") {
             token = stringTokenizer(sourceCode);
         } else if (/[\t\r\n ]/.test(char)) {
-            console.log(char);
-            token = whiteSpaceTokenizer(sourceCode);
+            whiteSpaceTokenizer(sourceCode); // 일부러 공백들은 계산 안 하게 함
+            continue;
         } else if ("=+\-*/!<>():;{},.".includes(char)) {
             token = operatorTokenizer(sourceCode);
         } else if (isDigit(char)) {
             token = numberTokenizer(sourceCode);
         } else if (isIdentifierPart(char)) {
             token = identifierTokenizer(sourceCode);
-        } else {    
+        } else {
             nextIdx();
-            token = new Token(Kind.Unknown, char);
+            warning("유효하지 않은 글자입니다.");
+            continue;
+            //token = new Token(Kind.Unknown, char);
         }
-
-        if (token) result.push(token);
+        result.push(token);
     }
     result.push(new Token(Kind.EndOfToken, null));
     for (let token of result) {
@@ -124,7 +129,7 @@ function identifierTokenizer(sourceCode) {
 }
 
 function isIdentifierPart(char) {
-    return /[a-zA-Z0-9_ㄱ-ㅎ가-힣]/.test(char);
+    return /[a-zA-Z0-9_ㄱ-ㅎㅏ-ㅣ가-힣]/.test(char);
 }
 
 function isKeyword(word) {
