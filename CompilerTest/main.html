@@ -10,10 +10,11 @@
     <h2>SPIL(Scheduler Policy Instruction Language) Interpreter</h2>
     <textarea id="cmd" type="textfield"></textarea>
     <br>
-    <button onclick="console.log(scan(document.getElementById('cmd').value))">Go!</button>
+    <button onclick="console.log(console.log(new Tokenizer(document.getElementById('cmd').value).token))">Go!</button>
+    <button type="button" onclick="window.open('./SPIL Document.html')" target='_blank'>Documentation</button>
 </body>
-<script src="./Kind.js"></script>
-<script src="./Scan.js"></script>
+<script src="./Token.js"></script>
+<script src="./Lexer.js"></script>
 <script src="./Parser.js"></script>
 <script src="./Compiler.js"></script>
 <script>

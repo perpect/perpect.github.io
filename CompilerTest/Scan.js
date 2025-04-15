@@ -76,13 +76,13 @@ function stringTokenizer(sourceCode) {
         if (escape){
             switch (char){
                 case "b":
-                    content = content.slice(-1);
+                    content += "\b";
                     break;
                 case "n":
                     content += "\n";
                     break;
                 case "t":
-                    content += "    ";
+                    content += "\t";
                     break;
                 default:
                     content += char;
@@ -133,7 +133,7 @@ function isIdentifierPart(char) {
 }
 
 function isKeyword(word) {
-    const keywords = ["rule", "if", "when", "then", "return", "true", "false"];
+    const keywords = ["if", "else", "true", "false"];
     return keywords.includes(word);
 }
 
@@ -149,7 +149,7 @@ function operatorTokenizer(sourceCode) {
             nextIdx();
         }
     }
-    return new Token(Kind.OperatorAndPunctuator, content);
+    return new Token(Kind.OperatorAndPunctuator, conten);
 }
 
 function numberTokenizer(sourceCode) {
@@ -164,7 +164,7 @@ function numberTokenizer(sourceCode) {
     if (sourceCode[scanIdx] == ".") {
         nextIdx();
         if (!isDigit(sourceCode[scanIdx])){
-            tokenizerError("종결되지 않은 소수 리터럴입니다.");
+            tokenizerError("소수점 뒤에 숫자가 없습니다.");
             return null;
         }
         let e = 0.1;
