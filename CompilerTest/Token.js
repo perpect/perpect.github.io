@@ -6,7 +6,10 @@ const Kind = {
     Keyword: "Keyword",
     OperatorAndPunctuator: "OperatorAndPunctuator",
     Comment: "Comment",
-    EndOfToken: "EndOfToken"
+    EndOfToken: "EndOfToken",
+    Function: "Function",
+    BooleanLiteral: "BooleanLiteral",
+    NullLiteral: "NullLiteral"
 };
 Object.freeze(Kind);
 
@@ -17,6 +20,9 @@ const TokenType = {
     FALSE: "FALSE",
     FAIL: "FAIL",
     NULL: "NULL",
+    LET: "LET",
+    FUNCTION: "FUNCTION",
+    RETURN: "RETURN",
 
     AND: "AND",
     OR: "OR",
@@ -56,29 +62,46 @@ const TokenType = {
 Object.freeze(TokenType);
 
 class Token {
-    constructor(kind, content) {
+    constructor(kind, value, line, column) {
         this.kind = kind;
-        this.content = content;
+        this.value = value;
         this.tokenType = this.getTokenType();
+        this.line = line;
+        this.column = column;
     }
 
     getTokenType() {
         if (this.kind === Kind.Keyword) {
-            switch (this.content) {
+            switch (this.value) {
                 case "if": return TokenType.IF;
                 case "else": return TokenType.ELSE;
                 case "fail": return TokenType.FAIL;
-                case "true": return TokenType.TRUE;
-                case "false": return TokenType.FALSE;
                 case "null": return TokenType.NULL;
                 case "and": return TokenType.AND;
                 case "or": return TokenType.OR;
                 case "not": return TokenType.NOT;
+                case "let": return TokenType.LET;
             }
+        }
+
+        if (this.kind === Kind.Function) {
+            switch (this.value) {
+                case "function": return TokenType.FUNCTION;
+                case "return": return TokenType.RETURN;
+            }
+        }
+        if (this.kind === Kind.BooleanLiteral) {
+            switch (this.value) {
+                case "true": return TokenType.TRUE;
+                case "false": return TokenType.FALSE;
+            }
+        }
+        if (this.kind === Kind.NullLiteral) {
+            return TokenType.NULL;
         }
     
         if (this.kind === Kind.OperatorAndPunctuator) {
-            switch (this.content) {
+            switch (this.value) {
                 case "==": return TokenType.EQ;
                 case "!=": return TokenType.NEQ;
                 case "<": return TokenType.LT;
@@ -100,6 +123,9 @@ class Token {
                 case ";": return TokenType.SEMICOLON;
                 case ",": return TokenType.COMMA;
                 case ".": return TokenType.DOT;
+                case "not": return TokenType.NOT;
+                case "and": return TokenType.AND;
+                case "or": return TokenType.OR;
             }
         }
     
@@ -115,6 +141,6 @@ class Token {
     }
 
     toString() {
-        return `[${this.kind}:${this.tokenType}] "${this.content}"`;
+        return `[${this.kind}:${this.tokenType}] "${this.value}"`;
     }    
 }

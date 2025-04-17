@@ -18,7 +18,11 @@ class Tokenizer {
         const column = this.idx - this.lastLineChange + 1;
         console.log(this.idx);
         console.error(`Error: ${content} (줄: ${line}, 글자: ${column})`);
-        //throw new Error(`TokenizerError: ${content} (줄: ${line}, 글자: ${column})`);
+    }
+
+    newToken(kind, value){
+        const column = this.idx - this.lastLineChange + 1;
+        return new Token(kind, value, this.line, column);
     }
 
     isWhiteSpace(c){return /[\t\r\n ]/.test(c);}
@@ -31,7 +35,11 @@ class Tokenizer {
         return operatorsAndPunctuators.includes(c);
     }
     isIdentifierPart(c) {return /[a-zA-Z0-9_ㄱ-ㅎㅏ-ㅣ가-힣]/.test(c);}
-    isKeyword(c) {return /if|else|true|false|fail|null/.test(c);}
+    isKeyword(c) {return /if|else|fail|let/.test(c);}
+    isBooleanLiteral(c) {return /true|false/.test(c);}
+    isNullLiteral(c) {return /null/.test(c);}
+    isFunction(c) {return /function|return/.test(c);}
+    isLogicalOperator(c) {return /and|or|not/.test(c);}
 
     scan(){
         let result = [];
@@ -58,7 +66,7 @@ class Tokenizer {
             }
             result.push(token);
         }
-        result.push(new Token(Kind.EndOfToken, TokenType.EOF));
+        result.push(this.newToken(Kind.EndOfToken, TokenType.EOF));
         return result;
     }
 
@@ -71,10 +79,22 @@ class Tokenizer {
         }
 
         if (this.isKeyword(identifier)) {
-            return new Token(Kind.Keyword, identifier);
+            return this.newToken(Kind.Keyword, identifier);
+        }
+        if (this.isBooleanLiteral(identifier)) {
+            return this.newToken(Kind.BooleanLiteral, identifier);
+        }
+        if (this.isNullLiteral(identifier)) {
+            return this.newToken(Kind.NullLiteral, identifier);
+        }
+        if (this.isFunction(identifier)) {
+            return this.newToken(Kind.Function, identifier);
+        }
+        if (this.isLogicalOperator(identifier)) {
+            return this.newToken(Kind.OperatorAndPunctuator, identifier);
         }
 
-        return new Token(Kind.Identifier, identifier);
+        return this.newToken(Kind.Identifier, identifier);
     }
 
     string() {
@@ -85,7 +105,7 @@ class Tokenizer {
             const char = this.srcCode[this.idx];
             if (char == quote) {
                 this.idx++;
-                return new Token(Kind.StringLiteral, str);
+                return this.newToken(Kind.StringLiteral, str);
             }
             if (char == '\\') {
                 this.idx++;
@@ -116,13 +136,13 @@ class Tokenizer {
             const char = this.srcCode[this.idx];
             if (char === '\n') {
                 this.idx++;
-                return new Token(Kind.Comment, comment);
+                return this.newToken(Kind.Comment, comment);
             }
             comment += char;
             this.idx++;
         }
 
-        return new Token(Kind.Comment, comment);
+        return this.newToken(Kind.Comment, comment);
     }
 
     whiteSpace(){
@@ -136,7 +156,7 @@ class Tokenizer {
             whitespace += char;
             this.idx++;
         }
-        return new Token(Kind.WhiteSpace, whitespace);
+        return this.newToken(Kind.WhiteSpace, whitespace);
     }
 
     number() {
@@ -171,7 +191,7 @@ class Tokenizer {
             this.error(`유효하지 않은 숫자 리터럴: ${num}`);
         }
 
-        return new Token(Kind.NumberLiteral, num);
+        return this.newToken(Kind.NumberLiteral, num);
     }
 
     operatorAndPunctuator() {
@@ -185,53 +205,17 @@ class Tokenizer {
         ];
     
         if (twoCharOps.includes(twoChar)) {
-            this.idx ++;
-            return new Token(Kind.OperatorAndPunctuator, twoChar);
+            this.idx += 2;
+            return this.newToken(Kind.OperatorAndPunctuator, twoChar);
         }
     
-        if (oneCharOps.includes(oneChar)) {
+        else if (oneCharOps.includes(oneChar)) {
             this.idx ++;
-            return new Token(Kind.OperatorAndPunctuator, oneChar);
+            return this.newToken(Kind.OperatorAndPunctuator, oneChar);
         }
     
         this.warn(`알 수 없는 연산자 또는 구두점: ${oneChar}`);
         this.idx ++;
-        return new Token(Kind.OperatorAndPunctuator, oneChar);
+        return this.newToken(Kind.OperatorAndPunctuator, oneChar);
     }
 }
-
-const examples = [
-    `
-if (x == 10) {
-    print("Hello, World!");
-} else {
-    print("Goodbye!");
-}
-`,
-    `
-let y = 20;
-while (y > 0) {
-    y = y - 1;
-    print(y);
-}
-`,
-    `
-@ This is a comment
-let z = "Test string with escape \\n characters";
-if (z != null) {
-    print(1e12);
-}
-`
-];
-
-examples.forEach((sourceCode, index) => {
-    console.log(`Example ${index + 1}:`);
-    const scanner = new Tokenizer(sourceCode);
-    const tokens = scanner.token;
-
-    tokens.forEach(token => {
-        console.log(token.toString());
-    });
-
-    console.log("----");
-});
