@@ -1,59 +1,139 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPIL Documentation</title>
-    <style>
-        pre {
-          font-family: Consolas,"courier new";
-          color: crimson;
-          background-color: #f1f1f1;
-          padding: 2px;
-          font-size: 105%;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPIL 공식 명세서 ver.2.0</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 20px; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    code { background: #eee; padding: 2px 4px; border-radius: 4px; }
+    h1, h2, h3 { color: #333; }
+  </style>
 </head>
 <body>
-    <h1>SPIL 문서 ver.1.0</h1>
-    <h2>1. 빠르게 시작하기</h2>
-    <p>
-        SPIL에 오신 것을 환영합니다! 자동 근무표 생성을 위한 기본적인 개념과 문법을 익히며 예제들을 통해 실무에 적합한 정책들을 생성해봅시다!<br>
-        이 문서는 우선 교대근무 관리체계의 기본적인 기능들을 익혔다는 전제하에 알려드릴 것이니 잘 모르신다면 교대근무 관리체계 매뉴얼부터 읽고 오시는 걸 추천드립니다.
-    </p>
 
-    <h3> 1.1. 자동 근무 생성 알고리즘 소개 </h3>
-    <p>
-        자동 근무 생성은 Simulated Annealing(SA)라는 최적화 알고리즘을 통해 구현되었습니다.<br>
-        간단히 설명드리자면, SA는 주어진 조건을 만족하는 최적의 결과를 찾기 위해 여러 가지 가능한 해결책을 시도하는 과정입니다.<br>
-        처음에는 무작위로 여러 후보를 생성하고, 점차 더 나은 결과로 이동하는 방식입니다. 여기서는 사용자가 지정한 정책에 가장 적합한 근무표를 찾기 위해 여러 후보 근무표들을 만들어내고, 그 중 가장 최적의 근무표를 선택하여 최적화합니다.
-    </p>
+<h1>SPIL 공식 명세서 ver.2.0</h1>
 
-    <h3>1.2. 예제 : 야간 근무 후 비번 보장 정책</h3>
-    <p>
-        다음은 간단한 야간 근무 후 비번을 보장하는 정책입니다.
-    </p>
+<h2>0. 빠르게 시작하기 (Quick Start)</h2>
+<p>
+SPIL은 근무표 자동 생성을 위한 간결한 스크립트 언어입니다.<br>
+아래 예제를 통해 SPIL의 기본 구조를 빠르게 이해할 수 있습니다.
+</p>
 <pre>
-if (근무 == 야간) {
-    if (다음날.근무 != 비번){
-        fail;
-    }
-}</pre>
-    <h3>1.3. "셀"의 개념</h3>
-    <p>
-        "셀"은 하나의 근무 항목을 의미합니다. 예를 들어, 각 근무자와 날짜별로 배치되는 근무를 하나의 셀로 간주할 수 있습니다.<br>
-        각 셀은 날짜와 근무자 정보를 포함하고 있으며, 근무 유형(예: 주간, 야간, 비번) 등의 규칙이 이 셀을 기준으로 적용됩니다.<br>
-        예를 들어, "2025년 5월 1일"에 "야간근무"가 배치된 셀이 있을 수 있으며, 이 셀은 "다음날" 셀과 비교되어 규칙이 적용됩니다.
-    </p>
-    
-    <h3>1.4. 예제를 통해 살펴본 작동 방식</h3>
-    <p>
-        SPIL에서는 정책을 적용하거나 평가할 때, 셀 단위로 평가가 이루어집니다. 예를 들어, <b>"다음날"</b>이라는 조건은 해당 셀의 오른쪽에 있는 셀을 가리킵니다.<br>
-        예제에 있는 정책은 다음과 같이 근무표를 평가하게 됩니다 : <br>
-        1. 야간근무가 배치된 셀을 찾습니다. (근무 == 야간근무)<br>
-        2. 그 다음날 셀(오른쪽 셀)의 근무가 비번이 아닌지 확인합니다. (다음날.근무 != 비번)<br>
-        3. 만약 비번이 아니면, 해당 후보는 탈락(fail) 처리됩니다.<br>
-        이 규칙을 통해, 야간근무 후 비번이 아닌 근무가 배치된 후보들은 자동으로 탈락하게 되며, 결과적으로 야간근무 후에는 비번이 보장된 근무표만 살아남게 됩니다.<br>
-    </p>
+시작:
+    비용 = 0
+
+루프:
+    만약 근무 == 야간:
+        만약 내일.근무 != 비번:
+            폐기
+    비용 = 비용 + 1
+
+판단:
+    -비용
+</pre>
+<p>
+이 스크립트는 다음을 수행합니다:
+</p>
+<ul>
+  <li><b>시작 구역</b>: 변수 <code>비용</code>을 0으로 초기화합니다.</li>
+  <li><b>루프 구역</b>: 각 셀을 순회하며 야간 근무 후 비번이 아닌 경우 후보를 폐기하고, 비용을 1씩 증가시킵니다.</li>
+  <li><b>판단 구역</b>: 비용이 작을수록 좋은 근무표로 평가합니다.</li>
+</ul>
+
+<h2>1. 소개</h2>
+<p>
+SPIL(Scheduler Policy Instruction Language)은 교대 근무표 자동 생성을 위해 개발된 간결하고 직관적인 DSL(Domain-Specific Language)입니다.
+정책 규칙을 자연어 스타일로 작성하여 복잡한 근무 규칙을 쉽게 구현할 수 있습니다.
+</p>
+
+<h2>2. 프로그램 구조</h2>
+<ul>
+  <li>프로그램은 세 개의 선택적 구역으로 나뉩니다: <b>시작(Start)</b>, <b>루프(Loop)</b>, <b>판단(Judge)</b>.</li>
+  <li>각 구역은 0개 이상 존재할 수 있으며, 순차적으로 평가됩니다.</li>
+  <li>루프 구역은 셀(Cell) 단위로 순회하며 평가합니다.</li>
+</ul>
+
+<h2>3. 기본 문법 개요</h2>
+<ul>
+  <li>들여쓰기 기반(4칸 스페이스)</li>
+  <li>구역 선언: <code>시작:</code>, <code>루프:</code>, <code>판단:</code></li>
+  <li>조건문: <code>만약 조건:</code></li>
+  <li>폐기문: <code>폐기</code></li>
+  <li>판단문: <code>+변수</code>, <code>-변수</code></li>
+</ul>
+
+<h2>4. EBNF 문법 명세</h2>
+<pre>
+program        = { section } ;
+section        = start_section | loop_section | judge_section ;
+start_section  = "시작" ":" NEWLINE INDENT { statement } DEDENT ;
+loop_section   = "루프" ":" NEWLINE INDENT { statement } DEDENT ;
+judge_section  = "판단" ":" NEWLINE INDENT { judge_expr } DEDENT ;
+
+statement      = assignment | if_statement | discard_statement ;
+assignment     = identifier "=" expression NEWLINE ;
+if_statement   = "만약" expression ":" NEWLINE INDENT { statement } DEDENT ;
+discard_statement = "폐기" NEWLINE ;
+
+judge_expr     = ("+" | "-") expression NEWLINE ;
+
+expression     = logical_expr ;
+logical_expr   = comparison_expr { ("그리고" | "또는") comparison_expr } ;
+comparison_expr = arith_expr { (">" | "<" | ">=" | "<=" | "==" | "!=") arith_expr } ;
+arith_expr     = term { ("+" | "-") term } ;
+term           = factor { ("*" | "/") factor } ;
+factor         = ["-"] atom ;
+atom           = number | string | identifier | field_access | "(" expression ")" ;
+field_access   = identifier { "." identifier } ;
+</pre>
+
+<h2>5. 키워드와 연산자</h2>
+<ul>
+  <li><b>구역 키워드:</b> 시작, 루프, 판단</li>
+  <li><b>제어 키워드:</b> 만약, 폐기</li>
+  <li><b>논리 연산자:</b> 그리고(AND), 또는(OR)</li>
+  <li><b>비교 연산자:</b> &gt;, &lt;, &gt;=, &lt;=, ==, !=</li>
+  <li><b>산술 연산자:</b> +, -, *, /</li>
+</ul>
+
+<h2>6. 스코프와 변수</h2>
+<ul>
+  <li><b>오늘:</b> 현재 커서가 가리키는 셀 (예: <code>근무</code>, <code>근무.주간</code>)</li>
+  <li><b>내일:</b> 커서 다음날의 셀 (예: <code>내일.근무</code>)</li>
+  <li><b>근무자:</b> 현재 커서에 해당하는 근무자</li>
+  <li><b>당일:</b> 해당 날짜의 모든 근무 배열 (예: <code>당일.근무.주간.수</code>)</li>
+</ul>
+
+<h2>7. 평가 모델</h2>
+<ul>
+  <li>루프 구역: 셀 순회 중 조건에 따라 폐기 가능</li>
+  <li>판단 구역: 생존한 후보에 대해 점수를 계산</li>
+  <li>가중치 방식: <code>+변수</code>는 점수 감소, <code>-변수</code>는 점수 증가</li>
+</ul>
+
+<h2>8. 예제 모음</h2>
+<h3>야간 근무 후 비번 보장</h3>
+<pre>
+루프:
+    만약 근무 == 야간:
+        만약 내일.근무 != 비번:
+            폐기
+</pre>
+
+<h3>근무일수 15일 이상 보장</h3>
+<pre>
+루프:
+    만약 근무자.근무.일수 < 15:
+        폐기
+</pre>
+
+<h3>근무시간 표준편차 최소화</h3>
+<pre>
+판단:
+    -표준편차(근무자.근무.시간)
+</pre>
+
 </body>
 </html>

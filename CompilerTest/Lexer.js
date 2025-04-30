@@ -1,221 +1,171 @@
-class Tokenizer {
-    constructor(sourceCode) {
-        this.srcCode = sourceCode;
-        this.idx = 0;
+import {
+    Keywords,
+    Operators,
+    MetaAccessors,
+    TokenType
+} from "./Token.js";
+
+const KEYWORDS = new Set(Object.values(Keywords));
+const META = new Set(Object.values(MetaAccessors));
+const TWO_CHAR_OPS = new Set([Operators.EQ, Operators.NEQ, Operators.GTE, Operators.LTE]);
+const ONE_CHAR_OPS = new Set([Operators.PLUS, Operators.MINUS, Operators.MUL, Operators.DIV, Operators.ASSIGN, Operators.GT, Operators.LT]);
+
+class Token {
+    constructor(type, lexeme, line, col) {
+        this.type = type;
+        this.lexeme = lexeme;
+        this.line = line;
+        this.col = col;
+    }
+}
+
+export class Tokenizer {
+    constructor(src) {
+        this.src = src;
+        this.i = 0;
         this.line = 1;
-        this.lastLineChange = 0;
-        this.token = this.scan(sourceCode);
+        this.col = 1;
+        this.tokens = [];
+        this.indents = [0];
     }
-
-    warn(content){
-        const line = this.line;
-        const column = this.idx - this.lastLineChange + 1;
-        console.warn(`Warning: ${content} (줄: ${line}, 글자: ${column})`);
+    push(type, lex = null) {
+        this.tokens.push(new Token(type, lex, this.line, this.col));
     }
-
-    error(content){
-        const line = this.line;
-        const column = this.idx - this.lastLineChange + 1;
-        console.log(this.idx);
-        console.error(`Error: ${content} (줄: ${line}, 글자: ${column})`);
+    peek(n = 0) {
+        return this.src[this.i + n] ?? "";
     }
-
-    newToken(kind, value){
-        const column = this.idx - this.lastLineChange + 1;
-        return new Token(kind, value, this.line, column);
+    isEOF() {
+        return this.i >= this.src.length;
     }
-
-    isWhiteSpace(c){return /[\t\r\n ]/.test(c);}
-    isDigit(c){return /[0-9]/.test(c);}
-    isOperatorAndPunctuator(c){
-        const operatorsAndPunctuators = [
-            '%', '=', '+', '-', '*', '/', '!', '<', '>', '(', ')', ':', ';', '{', '}', ',', '.', 
-            '==', '<=', '>=', '!=', '%=', '*=', '/=', '+=', '-='
-        ];
-        return operatorsAndPunctuators.includes(c);
+    advance() {
+        const ch = this.src[this.i++];
+        if (ch === "\n") {
+            this.line++;
+            this.col = 1;
+        } else {
+            this.col++;
+        }
+        return ch;
     }
-    isIdentifierPart(c) {return /[a-zA-Z0-9_ㄱ-ㅎㅏ-ㅣ가-힣]/.test(c);}
-    isKeyword(c) {return /if|else|fail|let/.test(c);}
-    isBooleanLiteral(c) {return /true|false/.test(c);}
-    isNullLiteral(c) {return /null/.test(c);}
-    isFunction(c) {return /function|return/.test(c);}
-    isLogicalOperator(c) {return /and|or|not/.test(c);}
-
-    scan(){
-        let result = [];
-        let token;
-        while (this.idx < this.srcCode.length) {
-            const char = this.srcCode[this.idx];
-            if (/["']/.test(char))
-                token = this.string();
-            else if (char == "@")
-                token = this.comment();
-            else if (this.isWhiteSpace(char)) {
-                this.whiteSpace();
-                continue;
-            } else if (this.isOperatorAndPunctuator(char))
-                token = this.operatorAndPunctuator();
-            else if (this.isDigit(char))
-                token = this.number();
-            else if (this.isIdentifierPart(char))
-                token = this.identifier();
-            else {
-                this.idx++;
-                this.warn("유효하지 않은 글자입니다.");
+    match(re) {
+        const m = re.exec(this.src.slice(this.i));
+        if (!m || m.index !== 0) return null;
+        this.i += m[0].length;
+        this.col += m[0].length;
+        return m[0];
+    }
+    error(msg) {
+        throw new SyntaxError(`${msg} (줄 ${this.line}, 칸 ${this.col})`);
+    }
+    handleIndent() {
+        let idx = this.i;
+        let spaces = 0;
+        while (this.src[idx] === " ") {
+            spaces++;
+            idx++;
+        }
+        if (this.src[idx] === "\t") this.error("탭 들여쓰기는 허용되지 않습니다.");
+        if (this.src[idx] === "\n" || this.src[idx] === "\r") return;
+        const prev = this.indents[this.indents.length - 1];
+        if (spaces % 4 !== 0) this.error("들여쓰기는 4의 배수여야 합니다.");
+        const level = spaces / 4;
+        if (level > prev) {
+            this.indents.push(level);
+            this.push(TokenType.INDENT);
+        } else if (level < prev) {
+            while (this.indents[this.indents.length - 1] > level) {
+                this.indents.pop();
+                this.push(TokenType.DEDENT);
+            }
+            if (this.indents[this.indents.length - 1] !== level) this.error("들여쓰기 일관성 오류입니다.");
+        }
+        this.col += spaces;
+        this.i = idx;
+    }
+    tokenize() {
+        while (!this.isEOF()) {
+            const ch = this.peek();
+            if (ch === "\n" || ch === "\r") {
+                this.advance();
+                this.push(TokenType.NEWLINE, "\n");
+                this.handleIndent();
                 continue;
             }
-            result.push(token);
-        }
-        result.push(this.newToken(Kind.EndOfToken, TokenType.EOF));
-        return result;
-    }
-
-    identifier() {
-        let identifier = '';
-
-        while (this.idx < this.srcCode.length && this.isIdentifierPart(this.srcCode[this.idx])) {
-            identifier += this.srcCode[this.idx];
-            this.idx++;
-        }
-
-        if (this.isKeyword(identifier)) {
-            return this.newToken(Kind.Keyword, identifier);
-        }
-        if (this.isBooleanLiteral(identifier)) {
-            return this.newToken(Kind.BooleanLiteral, identifier);
-        }
-        if (this.isNullLiteral(identifier)) {
-            return this.newToken(Kind.NullLiteral, identifier);
-        }
-        if (this.isFunction(identifier)) {
-            return this.newToken(Kind.Function, identifier);
-        }
-        if (this.isLogicalOperator(identifier)) {
-            return this.newToken(Kind.OperatorAndPunctuator, identifier);
-        }
-
-        return this.newToken(Kind.Identifier, identifier);
-    }
-
-    string() {
-        let str = '';
-        const quote = this.srcCode[this.idx++];
-
-        while (this.idx < this.srcCode.length) {
-            const char = this.srcCode[this.idx];
-            if (char == quote) {
-                this.idx++;
-                return this.newToken(Kind.StringLiteral, str);
+            if (ch === "@") {
+                while (!this.isEOF() && this.peek() !== "\n" && this.peek() !== "\r") this.advance();
+                continue;
             }
-            if (char == '\\') {
-                this.idx++;
-                if (this.idx < this.srcCode.length) {
-                    const escapeChar = this.srcCode[this.idx];
-                    switch (escapeChar) {
-                        case 'n': str += '\n'; break;
-                        case 't': str += '\t'; break; 
-                        case 'r': str += '\r'; break; 
-                        case '\\': str += '\\'; break;
-                        case '"': str += '"'; break;
-                        case "'": str += "'"; break;
-                        default: str += escapeChar; break;
+            if (ch === " " || ch === "\t") {
+                this.advance();
+                continue;
+            }
+            if (ch === '"' || ch === "'") {
+                const quote = this.advance();
+                let str = "";
+                while (!this.isEOF() && this.peek() !== quote) {
+                    if (this.peek() === "\\") {
+                        this.advance();
+                        str += "\\" + this.advance();
+                    } else {
+                        str += this.advance();
                     }
                 }
-            } else
-                str += char;
-            this.idx++;
-        }
-        this.error(`문자열 리터럴이 닫히지 않았습니다: ${str}`);
-    }
-
-    comment(){
-        let comment = '';
-        this.idx++;
-
-        while (this.idx < this.srcCode.length) {
-            const char = this.srcCode[this.idx];
-            if (char === '\n') {
-                this.idx++;
-                return this.newToken(Kind.Comment, comment);
+                if (this.peek() !== quote) this.error("문자열 리터럴이 닫히지 않았습니다.");
+                this.advance();
+                this.push(TokenType.STRING, str);
+                continue;
             }
-            comment += char;
-            this.idx++;
-        }
-
-        return this.newToken(Kind.Comment, comment);
-    }
-
-    whiteSpace(){
-        let whitespace = '';
-        while (this.idx < this.srcCode.length && this.isWhiteSpace(this.srcCode[this.idx])) {
-            const char = this.srcCode[this.idx];
-            if (char === '\n') {
-                this.line++;
-                this.lastLineChange = this.idx;
+            const num = this.match(/^\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/);
+            if (num) {
+                this.push(TokenType.NUMBER, num);
+                continue;
             }
-            whitespace += char;
-            this.idx++;
-        }
-        return this.newToken(Kind.WhiteSpace, whitespace);
-    }
-
-    number() {
-        let num = '';
-        let hasDot = false;
-        let hasExponent = false;
-
-        while (this.idx < this.srcCode.length) {
-            const char = this.srcCode[this.idx];
-
-            if (this.isDigit(char)) {
-                num += char;
-            } else if (char === '.' && !hasDot && !hasExponent) {
-                hasDot = true;
-                num += char;
-            } else if ((char === 'e' || char === 'E') && !hasExponent) {
-                hasExponent = true;
-                num += char;
-
-                const nextChar = this.srcCode[this.idx + 1];
-                if (nextChar === '+' || nextChar === '-') {
-                    num += nextChar;
-                    this.idx++;
-                }
-            } else {
-                break;
+            const id = this.match(/^[A-Za-z가-힣_][\w가-힣_]*/);
+            if (id) {
+                if (KEYWORDS.has(id)) this.push(TokenType.KEYWORD, id);
+                else if (META.has(id)) this.push(TokenType.META, id);
+                else this.push(TokenType.IDENT, id);
+                continue;
             }
-            this.idx++;
+            const two = this.peek() + this.peek(1);
+            if (TWO_CHAR_OPS.has(two)) {
+                this.advance();
+                this.advance();
+                this.push(TokenType.OPERATOR, two);
+                continue;
+            }
+            if (ONE_CHAR_OPS.has(ch)) {
+                this.push(TokenType.OPERATOR, this.advance());
+                continue;
+            }
+            if (ch === '.') {
+                this.push(TokenType.DOT, this.advance());
+                continue;
+            }
+            if (ch === ':') {
+                this.push(TokenType.COLON, this.advance());
+                continue;
+            }
+            if (ch === '(') {
+                this.push(TokenType.LPAREN, this.advance());
+                continue;
+            }
+            if (ch === ')') {
+                this.push(TokenType.RPAREN, this.advance());
+                continue;
+            }
+            this.error(`알 수 없는 문자 '${ch}'가 발견되었습니다.`);
         }
-
-        if (num.endsWith('.') || num.endsWith('e') || num.endsWith('E') || num.endsWith('+') || num.endsWith('-')) {
-            this.error(`유효하지 않은 숫자 리터럴: ${num}`);
+        if (this.tokens.length && this.tokens[this.tokens.length - 1].type !== TokenType.NEWLINE) this.push(TokenType.NEWLINE, "\n");
+        while (this.indents.length > 1) {
+            this.indents.pop();
+            this.push(TokenType.DEDENT);
         }
-
-        return this.newToken(Kind.NumberLiteral, num);
+        this.push(TokenType.EOF);
+        return this.tokens;
     }
+}
 
-    operatorAndPunctuator() {
-        const oneChar = this.srcCode[this.idx];
-        const twoChar = this.srcCode.slice(this.idx, this.idx + 2);
-        
-        const twoCharOps = ["==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%="];
-        const oneCharOps = [
-            "%", "=", "+", "-", "*", "/", "!", "<", ">", 
-            "(", ")", ":", ";", "{", "}", ",", "."
-        ];
-    
-        if (twoCharOps.includes(twoChar)) {
-            this.idx += 2;
-            return this.newToken(Kind.OperatorAndPunctuator, twoChar);
-        }
-    
-        else if (oneCharOps.includes(oneChar)) {
-            this.idx ++;
-            return this.newToken(Kind.OperatorAndPunctuator, oneChar);
-        }
-    
-        this.warn(`알 수 없는 연산자 또는 구두점: ${oneChar}`);
-        this.idx ++;
-        return this.newToken(Kind.OperatorAndPunctuator, oneChar);
-    }
+export function tokenize(src) {
+    return new Tokenizer(src).tokenize();
 }

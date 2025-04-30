@@ -3,32 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>SPIL Interpreter</title>
     <link rel="stylesheet" href="./style.css" type="text/css" />
 </head>
 <body>
-    <h2>SPIL(Scheduler Policy Instruction Language) Interpreter</h2>
-    <textarea id="cmd" type="textfield"></textarea>
-    <br>
-    <button onclick="console.log(console.log(new Tokenizer(document.getElementById('cmd').value).token))">Go!</button>
-    <button type="button" onclick="window.open('./SPIL Document.html')" target='_blank'>Documentation</button>
-</body>
-<script src="./Token.js"></script>
-<script src="./Lexer.js"></script>
-<script src="./Parser.js"></script>
-<script src="./Compiler.js"></script>
-<script>
-    document.getElementById('cmd').addEventListener('keydown', function(e) {
-        if (e.key == 'Tab') {
-            e.preventDefault();
-            var start = this.selectionStart;    
-            var end = this.selectionEnd;
+    <h2>SPIL (Scheduler Policy Instruction Language) Interpreter</h2>
 
-            // set textarea value to: text before caret + tab + text after caret
-            this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);// put caret at right position again
-            this.selectionStart =
-            this.selectionEnd = start + 1;
+    <textarea id="cmd" type="textfield" placeholder="여기에 SPIL 코드를 입력하세요"></textarea>
+    <br>
+    <button onclick="run()">Go!</button>
+    <button type="button" onclick="window.open('./SPIL Document.html')" target="_blank">Documentation</button>
+
+    <pre id="output"></pre>
+
+    <script type="module">
+    import { Keywords, Operators, MetaAccessors, TokenType } from "./Token.js";
+    import { Tokenizer } from "./Lexer.js";
+    import { parse } from "./Parser.js";
+    import { evaluate } from "./Evaluator.js";
+
+    window.run = function() {
+        const src = document.getElementById('cmd').value;
+        const output = document.getElementById('output');
+        try {
+            const tokens = new Tokenizer(src).tokenize();
+            const ast = parse(tokens);
+            const result = evaluate(ast);
+
+            output.textContent = JSON.stringify(result, null, 2);
+            console.log('결과:', result);
+        } catch (e) {
+            output.textContent = `오류 발생: ${e.message}`;
+            console.error(e);
+        }
+    }
+    </script>
+
+    <script>
+    document.getElementById('cmd').addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 1;
         }
     });
-</script>
+    </script>
+</body>
 </html>

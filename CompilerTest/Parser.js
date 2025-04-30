@@ -1,512 +1,277 @@
+import {
+    Keywords,
+    Operators,
+    MetaAccessors,
+    TokenType
+} from "./Token.js";
+
 class Parser {
     constructor(tokens) {
         this.tokens = tokens;
-        this.position = 0;
-        console.log(tokens);
+        this.i = 0;
     }
 
-    current() {
-        return this.tokens[this.position];
+    peek(offset = 0) {
+        return this.tokens[this.i + offset] ?? { type: TokenType.EOF };
     }
 
-    match(kind, tokenType = null) {
-        const token = this.current();
-        if (!token) return null;
-        if (token.kind === kind && (tokenType === null || token.tokenType === tokenType)) {
-            this.position++;
+    advance() {
+        return this.tokens[this.i++] ?? { type: TokenType.EOF };
+    }
+
+    match(...types) {
+        const token = this.peek();
+        if (types.includes(token.type)) {
+            this.advance();
             return token;
         }
         return null;
     }
 
-    expect(kind, tokenType = null) {
-        const token = this.current();
-        if (!token || token.kind !== kind || (tokenType !== null && token.tokenType !== tokenType)) {
-            throw new Error(`Expected ${tokenType || kind} but got '${token?.value}' at ${token?.line}:${token?.column}`);
+    expect(...types) {
+        const token = this.advance();
+        if (!types.includes(token.type)) {
+            throw new SyntaxError(`Expected ${types.join(" or ")} but got ${token.type}`);
         }
-        this.position++;
         return token;
     }
 
-    parse() {
-        const statements = [];
-        while (this.current() && this.current().tokenType !== TokenType.EOF) {
-            statements.push(this.statement());
+    parseProgram() {
+        const sections = [];
+        while (this.peek().type !== TokenType.EOF) {
+            const next = this.peek();
+            if (next.type === TokenType.KEYWORD && [Keywords.START, Keywords.LOOP, Keywords.JUDGE].includes(next.lexeme)) {
+                sections.push(this.parseSection());
+            } else if (next.type === TokenType.KEYWORD && next.lexeme === Keywords.FUNCTION) {
+                sections.push(this.parseFunctionDeclaration());
+            } else if (next.type === TokenType.NEWLINE) {
+                this.advance();
+            } else {
+                throw new SyntaxError(`Expected section keyword but got ${next.type}`);
+            }
         }
-        return {
-            type: "Program",
-            body: statements
-        };
-    }
+        return { type: "Program", sections };
+    }    
 
-    statement() {
-        const token = this.current();
-        if (!token) throw new Error("Unexpected end of input");
+    parseSection() {
+        const keyword = this.expect(TokenType.KEYWORD).lexeme;
+        this.expect(TokenType.COLON);
+        this.expect(TokenType.NEWLINE);
 
-        if (token.kind === Kind.Comment) return this.comment();
-        if (token.kind === Kind.Keyword && token.tokenType === TokenType.IF) return this.ifStatement();
-        if (token.kind === Kind.Keyword && token.tokenType === TokenType.FAIL) return this.fail();
-        if (token.kind === Kind.Keyword && token.tokenType === TokenType.LET) return this.let();
-        if (token.kind === Kind.Keyword && token.tokenType === TokenType.VALUE) return this.block("value");
-        if (token.kind === Kind.Keyword && token.tokenType === TokenType.FUNCTION) return this.functionDeclaration();
-        if (token.kind === Kind.Keyword && token.tokenType === TokenType.RETURN) return this.returnStatement();
-        if (token.kind === Kind.Identifier) return this.assignment();
+        if (this.peek().type === TokenType.INDENT) this.advance();
 
-        throw new Error(`Unexpected token '${token.value}' at ${token?.line}:${token?.column}`);
-    }
-
-    comment() {
-        const token = this.expect(Kind.Comment);
-        return {
-            type: "Comment",
-            value: token.value
-        };
-    }
-
-    let () {
-        this.expect(Kind.Keyword, TokenType.LET);
-        const id = this.expect(Kind.Identifier);
-        this.expect(Kind.OperatorAndPunctuator, TokenType.ASSIGN);
-        const expr = this.expression();
-        this.expect(Kind.OperatorAndPunctuator, TokenType.SEMICOLON);
-        return {
-            type: "LetStatement",
-            name: id.value,
-            value: expr
-        };
-    }
-
-    assignment() {
-        const id = this.expect(Kind.Identifier);
-        this.expect(Kind.OperatorAndPunctuator, TokenType.ASSIGN);
-        const expr = this.expression();
-        this.expect(Kind.OperatorAndPunctuator, TokenType.SEMICOLON);
-        return {
-            type: "Assignment",
-            name: id.value,
-            value: expr
-        };
-    }
-
-    fail() {
-        this.expect(Kind.Keyword, TokenType.FAIL);
-        let condition = null;
-        if (!(this.current().kind === Kind.OperatorAndPunctuator && this.current().tokenType === TokenType.SEMICOLON)) {
-            condition = this.expression();
+        if ([Keywords.START, Keywords.LOOP].includes(keyword)) {
+            const statements = [];
+            while (true) {
+                const next = this.peek();
+                if (next.type === TokenType.DEDENT || next.type === TokenType.EOF || (next.type === TokenType.KEYWORD && [Keywords.START, Keywords.LOOP, Keywords.JUDGE].includes(next.lexeme))) {
+                    if (next.type === TokenType.DEDENT) this.advance();
+                    break;
+                }
+                if (next.type === TokenType.NEWLINE) {
+                    this.advance();
+                    continue;
+                }
+                statements.push(this.parseStatement());
+            }
+            return { type: keyword === Keywords.START ? "StartSection" : "LoopSection", body: statements };
         }
-        this.expect(Kind.OperatorAndPunctuator, TokenType.SEMICOLON);
-        return {
-            type: "FailStatement",
-            condition
-        };
+
+        if (keyword === Keywords.JUDGE) {
+            const judges = [];
+            while (true) {
+                const next = this.peek();
+                if (next.type === TokenType.DEDENT || next.type === TokenType.EOF) {
+                    if (next.type === TokenType.DEDENT) this.advance();
+                    break;
+                }
+                if (next.type === TokenType.NEWLINE) {
+                    this.advance();
+                    continue;
+                }
+                judges.push(this.parseJudgeExpr());
+            }
+            return { type: "JudgeSection", body: judges };
+        }
+
+        throw new SyntaxError(`Unknown section keyword: ${keyword}`);
     }
 
-    block(kind) {
-        this.expect(Kind.Keyword, TokenType.VALUE);
-        this.expect(Kind.OperatorAndPunctuator, TokenType.LBRACE);
+    parseStatement() {
+        const next = this.peek();
+        if (next.type === TokenType.KEYWORD && next.lexeme === Keywords.IF) return this.parseIfStatement();
+        if (next.type === TokenType.KEYWORD && next.lexeme === Keywords.DISCARD) return this.parseDiscardStatement();
+        if (next.type === TokenType.KEYWORD && next.lexeme === Keywords.RETURN) return this.parseReturnStatement();
+        return this.parseAssignment();
+    }
+    
+    parseReturnStatement() {
+        this.expect(TokenType.KEYWORD);
+        const expr = this.parseExpr();
+        this.expect(TokenType.NEWLINE);
+        return { type: "ReturnStatement", expr };
+    }    
+
+    parseDiscardStatement() {
+        this.expect(TokenType.KEYWORD);
+        this.expect(TokenType.NEWLINE);
+        return { type: "DiscardStatement" };
+    }
+
+    parseAssignment() {
+        const name = this.expect(TokenType.IDENT).lexeme;
+        this.expect(TokenType.OPERATOR);
+        const expr = this.parseExpr();
+        this.expect(TokenType.NEWLINE);
+        return { type: "Assignment", name, expr };
+    }
+
+    parseIfStatement() {
+        this.expect(TokenType.KEYWORD);
+        const condition = this.parseExpr();
+        this.expect(TokenType.COLON);
+        this.expect(TokenType.NEWLINE);
+        this.expect(TokenType.INDENT);
         const body = [];
-        while (this.current() && !(this.current().kind === Kind.OperatorAndPunctuator && this.current().tokenType === TokenType.RBRACE)) {
-            body.push(this.statement());
+        while (this.peek().type !== TokenType.DEDENT && this.peek().type !== TokenType.EOF) {
+            body.push(this.parseStatement());
         }
-        this.expect(Kind.OperatorAndPunctuator, TokenType.RBRACE);
+        this.expect(TokenType.DEDENT);
+        return { type: "IfStatement", condition, body };
+    }
+
+    parseJudgeExpr() {
+        const token = this.advance();
+        if (token.type !== TokenType.OPERATOR || (token.lexeme !== "+" && token.lexeme !== "-")) {
+            throw new SyntaxError(`Expected '+' or '-' but got ${token.lexeme}`);
+        }
+        const expr = this.parseExpr();
+        this.expect(TokenType.NEWLINE);
+        return { type: "JudgeExpr", op: token.lexeme, expr };
+    }
+
+    parseFunctionDeclaration() {
+        this.expect(TokenType.KEYWORD);
+        const name = this.expect(TokenType.IDENT).lexeme;
+        this.expect(TokenType.LPAREN);
+    
+        const params = [];
+        if (this.peek().type !== TokenType.RPAREN) {
+            do {
+                params.push(this.expect(TokenType.IDENT).lexeme);
+            } while (this.match(TokenType.OPERATOR) && this.tokens[this.i - 1].lexeme === "," );
+        }
+        this.expect(TokenType.RPAREN);
+        this.expect(TokenType.COLON);
+        this.expect(TokenType.NEWLINE);
+        this.expect(TokenType.INDENT);
+    
+        const body = [];
+        while (this.peek().type !== TokenType.DEDENT && this.peek().type !== TokenType.EOF) {
+            body.push(this.parseStatement());
+        }
+        this.expect(TokenType.DEDENT);
+    
         return {
-            type: "Block",
-            kind,
+            type: "FunctionDeclaration",
+            name,
+            params,
             body
         };
+    }    
+
+    parseExpr() {
+        return this.parseComparisonExpr();
     }
 
-    ifStatement() {
-        this.expect(Kind.Keyword, TokenType.IF);
-        const condition = this.expression();
-
-        this.expect(Kind.OperatorAndPunctuator, TokenType.LBRACE);
-        const consequent = [];
-        while (
-            this.current() &&
-            !(this.current().kind === Kind.OperatorAndPunctuator && this.current().tokenType === TokenType.RBRACE)
-        ) {
-            consequent.push(this.statement());
-        }
-        this.expect(Kind.OperatorAndPunctuator, TokenType.RBRACE);
-
-        let alternate = null;
-        if (this.current() && this.current().kind === Kind.Keyword && this.current().tokenType === TokenType.ELSE) {
-            this.position++;
-            this.expect(Kind.OperatorAndPunctuator, TokenType.LBRACE);
-            alternate = [];
-            while (
-                this.current() &&
-                !(this.current().kind === Kind.OperatorAndPunctuator && this.current().tokenType === TokenType.RBRACE)
-            ) {
-                alternate.push(this.statement());
-            }
-            this.expect(Kind.OperatorAndPunctuator, TokenType.RBRACE);
-        }
-
-        return {
-            type: "IfStatement",
-            condition,
-            consequent,
-            alternate
-        };
-    }
-
-    expression() {
-        return this.logicalOr();
-    }
-
-    logicalOr() {
-        let left = this.logicalAnd();
-        while (this.match(Kind.OperatorAndPunctuator, TokenType.OR)) {
-            const right = this.logicalAnd();
-            left = {
-                type: "LogicalExpression",
-                operator: "or",
-                left,
-                right
-            };
+    parseComparisonExpr() {
+        let left = this.parseLogicExpr();
+        while (this.peek().type === TokenType.OPERATOR && [">", "<", ">=", "<=", "==", "!="].includes(this.peek().lexeme)) {
+            const op = this.advance().lexeme;
+            const right = this.parseLogicExpr();
+            left = { type: "BinaryExpr", op, left, right };
         }
         return left;
     }
 
-    logicalAnd() {
-        let left = this.equality();
-        while (this.match(Kind.OperatorAndPunctuator, TokenType.AND)) {
-            const right = this.equality();
-            left = {
-                type: "LogicalExpression",
-                operator: "and",
-                left,
-                right
-            };
+    parseLogicExpr() {
+        let left = this.parseArithExpr();
+        while (this.peek().type === TokenType.KEYWORD && [Keywords.AND, Keywords.OR].includes(this.peek().lexeme)) {
+            const op = this.advance().lexeme;
+            const right = this.parseArithExpr();
+            left = { type: "LogicalExpr", op, left, right };
         }
         return left;
     }
 
-    equality() {
-        let left = this.relational();
-        while (true) {
-            if (this.match(Kind.OperatorAndPunctuator, TokenType.EQ)) {
-                const right = this.relational();
-                left = {
-                    type: "BinaryExpression",
-                    operator: "==",
-                    left,
-                    right
-                };
-            } else if (this.match(Kind.OperatorAndPunctuator, TokenType.NEQ)) {
-                const right = this.relational();
-                left = {
-                    type: "BinaryExpression",
-                    operator: "!=",
-                    left,
-                    right
-                };
-            } else {
-                break;
-            }
+    parseArithExpr() {
+        let left = this.parseTerm();
+        while (this.peek().type === TokenType.OPERATOR && [Operators.PLUS, Operators.MINUS].includes(this.peek().lexeme)) {
+            const op = this.advance().lexeme;
+            const right = this.parseTerm();
+            left = { type: "BinaryExpr", op, left, right };
         }
         return left;
     }
 
-    relational() {
-        let left = this.additive();
-        while (true) {
-            if (this.match(Kind.OperatorAndPunctuator, TokenType.LT)) {
-                const right = this.additive();
-                left = {
-                    type: "BinaryExpression",
-                    operator: "<",
-                    left,
-                    right
-                };
-            } else if (this.match(Kind.OperatorAndPunctuator, TokenType.GT)) {
-                const right = this.additive();
-                left = {
-                    type: "BinaryExpression",
-                    operator: ">",
-                    left,
-                    right
-                };
-            } else if (this.match(Kind.OperatorAndPunctuator, TokenType.LTE)) {
-                const right = this.additive();
-                left = {
-                    type: "BinaryExpression",
-                    operator: "<=",
-                    left,
-                    right
-                };
-            } else if (this.match(Kind.OperatorAndPunctuator, TokenType.GTE)) {
-                const right = this.additive();
-                left = {
-                    type: "BinaryExpression",
-                    operator: ">=",
-                    left,
-                    right
-                };
-            } else {
-                break;
-            }
+    parseTerm() {
+        let left = this.parseFactor();
+        while (this.peek().type === TokenType.OPERATOR && [Operators.MUL, Operators.DIV].includes(this.peek().lexeme)) {
+            const op = this.advance().lexeme;
+            const right = this.parseFactor();
+            left = { type: "BinaryExpr", op, left, right };
         }
         return left;
     }
 
-    additive() {
-        let left = this.multiplicative();
-        while (true) {
-            if (this.match(Kind.OperatorAndPunctuator, TokenType.PLUS)) {
-                const right = this.multiplicative();
-                left = {
-                    type: "BinaryExpression",
-                    operator: "+",
-                    left,
-                    right
-                };
-            } else if (this.match(Kind.OperatorAndPunctuator, TokenType.MINUS)) {
-                const right = this.multiplicative();
-                left = {
-                    type: "BinaryExpression",
-                    operator: "-",
-                    left,
-                    right
-                };
-            } else {
-                break;
-            }
+    parseFactor() {
+        if (this.peek().type === TokenType.OPERATOR && this.peek().lexeme === Operators.MINUS) {
+            this.advance();
+            const expr = this.parseFactor();
+            return { type: "UnaryExpr", op: "-", expr };
         }
-        return left;
-    }
-
-    multiplicative() {
-        let left = this.unary();
-        while (true) {
-            if (this.match(Kind.OperatorAndPunctuator, TokenType.MUL)) {
-                const right = this.unary();
-                left = {
-                    type: "BinaryExpression",
-                    operator: "*",
-                    left,
-                    right
-                };
-            } else if (this.match(Kind.OperatorAndPunctuator, TokenType.DIV)) {
-                const right = this.unary();
-                left = {
-                    type: "BinaryExpression",
-                    operator: "/",
-                    left,
-                    right
-                };
-            } else if (this.match(Kind.OperatorAndPunctuator, TokenType.MOD)) {
-                const right = this.unary();
-                left = {
-                    type: "BinaryExpression",
-                    operator: "%",
-                    left,
-                    right
-                };
-            } else {
-                break;
-            }
-        }
-        return left;
-    }
-
-    unary() {
-        if (this.match(Kind.OperatorAndPunctuator, TokenType.MINUS)) {
-            return {
-                type: "UnaryExpression",
-                operator: "-",
-                argument: this.unary()
-            };
-        }
-        if (this.match(Kind.OperatorAndPunctuator, TokenType.NOT)) {
-            return {
-                type: "UnaryExpression",
-                operator: "not",
-                argument: this.unary()
-            };
-        }
-        return this.primary();
-    }
-
-    primary() {
-        const token = this.current();
-
-        if (token.kind === Kind.NullLiteral && token.tokenType === TokenType.NULL) {
-            this.position++;
-            return {
-                type: "NullLiteral",
-                value: null
-            };
-        }
-
-        if (token.kind === Kind.BooleanLiteral && token.tokenType === TokenType.TRUE) {
-            this.position++;
-            return {
-                type: "BooleanLiteral",
-                value: true
-            };
-        }
-        if (token.kind === Kind.BooleanLiteral && token.tokenType === TokenType.FALSE) {
-            this.position++;
-            return {
-                type: "BooleanLiteral",
-                value: false
-            };
-        }
-
-        if (token.kind === Kind.NumberLiteral) {
-            this.position++;
-            return {
-                type: "NumberLiteral",
-                value: Number(token.value)
-            };
-        }
-
-        if (token.kind === Kind.StringLiteral) {
-            this.position++;
-            return {
-                type: "StringLiteral",
-                value: token.value
-            };
-        }
-
-        if (token.kind === Kind.Identifier) {
-            const next = this.tokens[this.position + 1];
-            if (next && next.kind === Kind.OperatorAndPunctuator && next.tokenType === TokenType.LPAREN) {
-                return this.functionCall();
-            }
-            this.position++;
-            return {
-                type: "Identifier",
-                name: token.value
-            };
-        }
-
-        if (this.match(Kind.OperatorAndPunctuator, TokenType.LPAREN)) {
-            const expr = this.expression();
-            this.expect(Kind.OperatorAndPunctuator, TokenType.RPAREN);
+        if (this.peek().type === TokenType.LPAREN) {
+            this.advance();
+            const expr = this.parseExpr();
+            this.expect(TokenType.RPAREN);
             return expr;
         }
-
-        throw new Error(`Unexpected token '${token?.value}' at line ${token?.line}`);
+        return this.parseAtom();
     }
-    functionDeclaration() {
-        this.expect(Kind.Keyword, TokenType.FUNCTION); // 'function'
-        const name = this.expect(Kind.Identifier).value;
-      
-        this.expect(Kind.OperatorAndPunctuator, TokenType.LPAREN);
-      
-        const params = [];
-        if (
-          this.current().kind === Kind.Identifier
-        ) {
-          params.push(this.expect(Kind.Identifier).value);
-          while (
-            this.current().kind === Kind.OperatorAndPunctuator &&
-            this.current().tokenType === TokenType.COMMA
-          ) {
-            this.expect(Kind.OperatorAndPunctuator, TokenType.COMMA);
-            params.push(this.expect(Kind.Identifier).value);
-          }
+
+    parseAtom() {
+        const token = this.peek();
+        if (token.type === TokenType.NUMBER || token.type === TokenType.STRING) {
+            return { type: "Literal", value: this.advance().lexeme };
         }
-      
-        this.expect(Kind.OperatorAndPunctuator, TokenType.RPAREN);
-      
-        this.expect(Kind.OperatorAndPunctuator, TokenType.LBRACE);
-      
-        const body = [];
-        while (
-          this.current() &&
-          !(this.current().kind === Kind.OperatorAndPunctuator &&
-            this.current().tokenType === TokenType.RBRACE)
-        ) {
-          body.push(this.statement());
-        }
-      
-        this.expect(Kind.OperatorAndPunctuator, TokenType.RBRACE);
-      
-        return {
-          type: "FunctionDeclaration",
-          name,
-          params,
-          body,
-        };
-      }
-
-    returnStatement() {
-        this.expect(Kind.Keyword, TokenType.RETURN);
-        const value = this.expression();
-        this.expect(Kind.OperatorAndPunctuator, TokenType.SEMICOLON);
-      
-        return {
-          type: "ReturnStatement",
-          value
-        };
-      }      
-
-    functionCall() {
-        const name = this.expect(Kind.Identifier).value;
-        this.expect(Kind.OperatorAndPunctuator, TokenType.LPAREN);
-
-        const args = [];
-        while (this.current() && !(this.current().kind === Kind.OperatorAndPunctuator && this.current().tokenType === TokenType.RPAREN)) {
-            args.push(this.expression());
-            if (this.current().kind === Kind.OperatorAndPunctuator && this.current().tokenType === TokenType.COMMA) {
-                this.expect(Kind.OperatorAndPunctuator, TokenType.COMMA);
-            } else {
-                break;
+    
+        if (token.type === TokenType.IDENT) {
+            let node = { type: "Identifier", name: this.advance().lexeme };
+    
+            if (this.peek().type === TokenType.LPAREN) {
+                this.advance();
+                const args = [];
+                if (this.peek().type !== TokenType.RPAREN) {
+                    do {
+                        args.push(this.parseExpr());
+                    } while (this.match(TokenType.OPERATOR) && this.tokens[this.i - 1].lexeme === "," );
+                }
+                this.expect(TokenType.RPAREN);
+                return { type: "FunctionCall", name: node.name, args };
             }
+    
+            while (this.peek().type === TokenType.DOT) {
+                this.advance();
+                const field = this.expect(TokenType.IDENT, TokenType.META).lexeme;
+                node = { type: "FieldAccess", object: node, field };
+            }
+            return node;
         }
-
-        this.expect(Kind.OperatorAndPunctuator, TokenType.RPAREN);
-        return {
-            type: "FunctionCall",
-            name,
-            args
-        };
-    }
+    
+        throw new SyntaxError(`Unexpected token: ${token.type}`);
+    }    
 }
 
-const examples = [
-    `
-if (x == 10) {
-    print = "Hello, World!";
-} else {
-    print = "Goodbye!";
+export function parse(tokens) {
+    return new Parser(tokens).parseProgram();
 }
-`,
-    `
-let y = 20;
-if (y > 0) {
-    y = y - 1;
-    print = y;
-}
-`,
-    `
-@ This is a comment
-let z = "Test string with escape \\n characters";
-if (not z == false) {
-    print = 1e12;
-}
-`
-];
-
-examples.forEach((sourceCode, index) => {
-    console.log(`Example ${index + 1}:`);
-    const scanner = new Tokenizer(sourceCode);
-    const tokens = scanner.token;
-
-    tokens.forEach(token => {
-        console.log(token.toString());
-    });
-
-    console.log("----");
-
-    const parser = new Parser(tokens);
-    const ast = parser.parse();
-    console.log(JSON.stringify(ast, null, 2));
-    console.log("----");
-
-});
