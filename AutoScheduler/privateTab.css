@@ -1,0 +1,155 @@
+/* scheduleCardBox.css - 안건 카드 전체 스타일 구성 */
+
+.scheduleCardContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 12px;
+    justify-content: flex-start;
+  }
+  
+  .scheduleCardBox {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+  
+    width: 180px;
+    min-height: 120px;
+    padding: 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 10px;
+    background-color: #ffffff;
+  
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .scheduleCardBox:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .scheduleCardBox input[type="radio"] {
+    display: none;
+  }
+  
+  .scheduleCardBox label {
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #333;
+  }
+  
+  .scheduleCardBox img {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .scheduleCardBox .rowContent {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  
+  .scheduleCardBox .smallBtn {
+    font-size: 12px;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .scheduleCardBox .smallBtn:hover {
+    background: #e0e0e0;
+  }
+  
+  .scheduleCardAddBtn {
+    width: 180px;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #aaa;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .scheduleCardAddBtn:hover {
+    background: #f0f0f0;
+  }
+  
+  /* scheduleConfig.css - 근무 설정 탭 전용 스타일 */
+
+/* 입력 필드 라인 */
+.scheduleConfigRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.scheduleConfigRow input,
+.scheduleConfigRow button {
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+}
+
+.scheduleConfigRow input[type="color"] {
+  padding: 0;
+  width: 40px;
+  height: 36px;
+}
+
+.scheduleConfigRow input[type="time"] {
+  min-width: 100px;
+}
+
+.scheduleConfigAddBtn {
+  background-color: #f1f1f1;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.scheduleConfigAddBtn:hover {
+  background-color: #e0e0e0;
+}
+
+/* 버튼 목록 */
+.scheduleTypeButtonWrap {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.scheduleTypeButtonWrap .smallBtn {
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.scheduleTypeButtonWrap .smallBtn.selected {
+  outline: 2px solid #333;
+  font-weight: bold;
+  opacity: 1;
+}
+
+.scheduleTypeButtonWrap .smallBtn:not(.selected) {
+  opacity: 0.7;
+}

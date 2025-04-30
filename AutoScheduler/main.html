@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AutoScheduler</title>
     <link rel="stylesheet" href="./table.css" type="text/css" />
+    <link rel="stylesheet" href="./privateTab.css" type="text/css" />
     <link rel="stylesheet" href="./tab.css" type="text/css" />
     <link rel="stylesheet" href="./style.css" type="text/css" />
 </head>
@@ -75,7 +76,10 @@
 <script src="./ScheduleButton.js"></script>
 <script src="./ScheduleTable.js"></script>
 <script src="./TabController.js"></script>
-<script>
+<script type="module">
+    import { patchAutoSchedulerUI } from "./privatesSheduleTab.js";
+    import { setupScheduleListTab } from "./privateScheduleList.js";
+
     const today = new Date();
 
     // TODO : 월 바꾸는 거 정도는 그냥 클래스로 만들것
@@ -93,13 +97,7 @@
     scheduleTableMgr.add(new ScheduleTable(p, today));
     scheduleTableMgr.update(privateScheduleTable);
     
-    const scheduleBtnCon = new ScheduleController("day", [
-        ["day", "주"],
-        ["night", "야"],
-        ["off", "비"],
-        ["all", "짱"],
-        ["vacation", "휴"]
-    ]);
+    const scheduleBtnCon = new ScheduleController(null, []);
 
     const mainTabCon = new TabButtonController(0, [
         [0, "병사 근무표", "calendar"],
@@ -127,12 +125,17 @@
         privateYearDisplay.innerHTML = scheduleTableMgr.year + "년";
         privateMonthDisplay.innerHTML = scheduleTableMgr.month + 1 + "월";
     });
-    nextBtn = document.getElementById("next-page");
+    let nextBtn = document.getElementById("next-page");
     nextBtn.addEventListener("click", (e)=>{
         scheduleTableMgr.nextMonth();
         scheduleTableMgr.update(privateScheduleTable);
         privateYearDisplay.innerHTML = scheduleTableMgr.year + "년";
         privateMonthDisplay.innerHTML = scheduleTableMgr.month + 1 + "월";
     });
+
+    window.addEventListener("DOMContentLoaded", () => {
+        patchAutoSchedulerUI(p, scheduleTableMgr, scheduleBtnCon, today);
+    });
+    setupScheduleListTab(scheduleTableMgr, today, p);
 </script>
 </html>

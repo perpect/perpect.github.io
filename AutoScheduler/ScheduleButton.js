@@ -1,64 +1,65 @@
+// ScheduleButton.js (리팩터링: 객체 기반 scheduleTypeData 대응)
 class ScheduleButton {
-    constructor(id, name, selected, mgr) {
-        this.id = id;
-        this.name = name;
+    constructor(typeObj, selected, mgr) {
+        this.id = typeObj.id;
+        this.name = typeObj.name;
+        this.color = typeObj.color;
         this.mgr = mgr;
+        this.selected = selected;
+
         this.button = document.createElement("div");
         this.button.classList.add("scheduleButton");
-        this.button.classList.add(id + "Color");
-        this.selected = selected;
+        this.button.textContent = this.name;
+        this.button.style.backgroundColor = this.color;
+
         if (this.selected)
             this.button.classList.add("selectedScheduleBtn");
-        this.button.addEventListener("click", (e)=>{
-            this.click();
-        });
-        this.button.insertAdjacentHTML("afterbegin", name);
+
+        this.button.addEventListener("click", () => this.click());
     }
 
-    click(){
-        if (this.selected)
-            return;
+    click() {
+        if (this.selected) return;
         this.button.classList.add("selectedScheduleBtn");
         this.mgr.selectBtn(this.id);
     }
 
-    off(){
+    off() {
         this.button.classList.remove("selectedScheduleBtn");
         this.selected = false;
     }
 }
 
-// TODO : 삭제 후 ./controller.js에 있는 매니저로 통합할 것
-class ScheduleController{
+class ScheduleController {
     constructor(initialSelect, scheduleTypeData) {
         this.scheduleTypeData = scheduleTypeData;
         this.scheduleButtons = {};
         this.nowId = initialSelect;
-        scheduleTypeData.forEach(data => {
-            this.scheduleButtons[data[0]] = new ScheduleButton(data[0], data[1], initialSelect == data[0], this);
+
+        scheduleTypeData.forEach(typeObj => {
+            this.scheduleButtons[typeObj.id] = new ScheduleButton(typeObj, initialSelect === typeObj.id, this);
         });
+
         this.selectedBtn = this.scheduleButtons[initialSelect];
-        Object.keys(this.scheduleButtons).forEach((id)=>{
-            if (this.nowId != id)
-                this.scheduleButtons[id].off();
+        Object.keys(this.scheduleButtons).forEach(id => {
+            if (this.nowId !== id) this.scheduleButtons[id].off();
         });
     }
 
-    selectBtn(id){
-        if (this.nowId == id)
-            return;
+    selectBtn(id) {
+        if (this.nowId === id) return;
         this.selectedBtn.off();
         this.selectedBtn = this.scheduleButtons[id];
         this.nowId = id;
     }
 
-    get keys(){
+    get keys() {
         return Object.keys(this.scheduleButtons);
     }
 
-    insertTo(parent){
-        Object.keys(this.scheduleButtons).forEach(id => {
-            parent.appendChild(this.scheduleButtons[id].button);
+    insertTo(parent) {
+        Object.values(this.scheduleButtons).forEach(button => {
+            parent.appendChild(button.button);
         });
     }
 }

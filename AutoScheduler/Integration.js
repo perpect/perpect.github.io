@@ -1,6 +1,8 @@
-import { tokenize } from "./Lexer.js";
-import { parse } from "./Parser.js";
-import { evaluate } from "./Evaluator.js";
+// Integration.js (SPIL 평가기 통합 및 최적화 모듈)
+
+import { tokenize } from "./SPIL/Lexer.js";
+import { parse } from "./SPIL/Parser.js";
+import { evaluate } from "./SPIL/Evaluator.js";
 
 const spilCode = `
 시작:
@@ -39,7 +41,7 @@ function tableToMatrix(scheduleTable) {
   return matrix;
 }
 
-function extractScheduleData(scheduleTable) {
+export function extractScheduleData(scheduleTable) {
   return scheduleTable.tableInfo.slice(1).map(row =>
     row.map(cell => {
       const cls = cell.className.split(" ");
@@ -48,7 +50,7 @@ function extractScheduleData(scheduleTable) {
   );
 }
 
-function createScheduleFromData(data, peopleInfo, dateInfo) {
+export function createScheduleFromData(data, peopleInfo, dateInfo) {
   const table = new ScheduleTable(peopleInfo, dateInfo);
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
@@ -58,7 +60,7 @@ function createScheduleFromData(data, peopleInfo, dateInfo) {
   return table;
 }
 
-async function simulatedAnnealing(initialTable, peopleInfo, dateInfo, spilAST, iterations = 1000) {
+export async function simulatedAnnealing(initialTable, peopleInfo, dateInfo, spilAST, iterations = 1000) {
   let currentData = extractScheduleData(initialTable);
   let current = createScheduleFromData(currentData, peopleInfo, dateInfo);
   let result = evaluateSchedule(current, peopleInfo, dateInfo, spilAST);
