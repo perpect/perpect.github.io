@@ -1,47 +1,61 @@
-// privatesSheduleTab.js (근무 설정 탭 CSS 클래스 재정비)
 import { tokenize } from "./SPIL/Lexer.js";
 import { parse } from "./SPIL/Parser.js";
-import { simulatedAnnealing } from "./Integration.js";
+import { simulatedAnnealing } from "./SimulatedAnnealing.js";
 
-function setupAutoGenerationUI(p, scheduleTableMgr, today) {
+// 자동 근무 생성 탭
+function setupAutoGenerationUI(p, scheduleTableMgr, today, scheduleBtnCon) {
   const container = document.getElementById("privateTab-2");
+  container.innerHTML = "";
 
   const textarea = document.createElement("textarea");
   textarea.id = "spilInput";
   textarea.rows = 8;
-  textarea.style.width = "100%";
-  textarea.value = `시작:
- 비용 = 0
-루프:
- 만약 근무 == "야":
-  만약 내일.근무 != "비":
-   폐기
- 비용 = 비용 + 1
-판단:
- -비용`;
-
+  textarea.value = `시작:\n    비용 = 0\n루프:\n    만약 내일(0).근무 == "야":\n        만약 내일(1).근무 != "비":\n            폐기\n만약 길이(당일근무자("야")) == 0:\n    폐기\n판단:\n    -비용`;
   const button = document.createElement("div");
   button.className = "smallBtn editBtn";
   button.id = "autoGenerateBtn";
   button.textContent = "자동 근무표 생성";
 
   button.addEventListener("click", async () => {
-    const code = textarea.value;
-    const spilAST = parse(tokenize(code));
-    const current = scheduleTableMgr.getSchedule(today);
-    if (!current) return alert("근무표 없음");
-    const optimized = await simulatedAnnealing(current, p, today, spilAST, 300);
-    scheduleTableMgr.add(optimized, today, true);
-    scheduleTableMgr.update(document.getElementById("privateTable"));
+      const code = textarea.value;
+      const spilAST = parse(tokenize(code));
+      const current = scheduleTableMgr.getSchedule(today);
+      if (!current) return alert("근무표 없음");
+
+      const optimized = await simulatedAnnealing(current, spilAST, scheduleBtnCon, 3000);
+      scheduleTableMgr.add(optimized, today, true);
+      scheduleTableMgr.update(document.getElementById("privateTable"));
+    
   });
 
   container.appendChild(textarea);
   container.appendChild(button);
 }
 
+// 근무 유형 설정 탭
 function setupScheduleConfigUI(scheduleController) {
   const container = document.getElementById("privateTab-3");
   container.innerHTML = "";
+
+  if (!scheduleController) {
+    console.warn("ScheduleController가 정의되지 않았습니다.");
+    return;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "scheduleConfigContainer";
+
+  const makeRow = (labelText, inputElem) => {
+    const row = document.createElement("div");
+    row.className = "scheduleConfigRow";
+
+    const label = document.createElement("label");
+    label.textContent = labelText;
+
+    row.appendChild(label);
+    row.appendChild(inputElem);
+    return row;
+  };
 
   const inputId = document.createElement("input");
   inputId.placeholder = "SPIL 키 (예: day)";
@@ -61,9 +75,11 @@ function setupScheduleConfigUI(scheduleController) {
   inputEnd.type = "time";
   inputEnd.value = "18:00";
 
-  const formRow = document.createElement("div");
-  formRow.className = "scheduleConfigRow";
-  [inputId, inputName, inputColor, inputStart, inputEnd].forEach(el => formRow.appendChild(el));
+  wrapper.appendChild(makeRow("SPIL 키", inputId));
+  wrapper.appendChild(makeRow("표시 이름", inputName));
+  wrapper.appendChild(makeRow("색상", inputColor));
+  wrapper.appendChild(makeRow("시작 시간", inputStart));
+  wrapper.appendChild(makeRow("종료 시간", inputEnd));
 
   const addBtn = document.createElement("button");
   addBtn.textContent = "근무 추가";
@@ -84,11 +100,12 @@ function setupScheduleConfigUI(scheduleController) {
     inputName.value = "";
   };
 
-  container.appendChild(formRow);
-  container.appendChild(addBtn);
+  wrapper.appendChild(addBtn);
+  container.appendChild(wrapper);
   scheduleController.refresh(container);
 }
 
+// 수동 편집 탭
 function setupManualEdit(scheduleController, scheduleTableMgr, today) {
   const container = document.getElementById("privateTab-1");
   const table = scheduleTableMgr.getSchedule(today);
@@ -108,6 +125,7 @@ function setupManualEdit(scheduleController, scheduleTableMgr, today) {
   }
 }
 
+// ScheduleController 확장 메서드 방어코드 포함
 if (typeof ScheduleController !== 'undefined') {
   ScheduleController.prototype.addScheduleType = function(typeObj) {
     this.scheduleTypeData = this.scheduleTypeData || [];
@@ -115,7 +133,7 @@ if (typeof ScheduleController !== 'undefined') {
   };
 
   ScheduleController.prototype.hasTypeId = function(id) {
-    return this.scheduleTypeData?.some(t => t.id === id);
+    return (this.scheduleTypeData || []).some(t => t.id === id);
   };
 
   ScheduleController.prototype.getAllTypeIds = function() {
@@ -146,7 +164,7 @@ if (typeof ScheduleController !== 'undefined') {
 }
 
 export function patchAutoSchedulerUI(p, scheduleTableMgr, scheduleBtnCon, today) {
-  setupAutoGenerationUI(p, scheduleTableMgr, today);
+  setupAutoGenerationUI(p, scheduleTableMgr, today, scheduleBtnCon);
   setupScheduleConfigUI(scheduleBtnCon);
   setupManualEdit(scheduleBtnCon, scheduleTableMgr, today);
 }

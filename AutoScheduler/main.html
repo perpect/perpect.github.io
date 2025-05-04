@@ -97,7 +97,15 @@
     scheduleTableMgr.add(new ScheduleTable(p, today));
     scheduleTableMgr.update(privateScheduleTable);
     
-    const scheduleBtnCon = new ScheduleController(null, []);
+    const scheduleBtnCon = new ScheduleController("주", [{
+      id: "주", name: "주간", color: "#41a2ff", time: ["09:00", "18:00"]
+    },{
+      id: "야", name: "야간", color: "#ecff41", time: ["18:00", "09:00"]
+    },{
+      id: "휴", name: "휴가", color: "#ff41a2", time: ["-", "-"]
+    },{
+      id: "비", name: "비번", color: "#ff6f6a", time: ["-", "-"]
+    }], "scheduleBtn");
 
     const mainTabCon = new TabButtonController(0, [
         [0, "병사 근무표", "calendar"],

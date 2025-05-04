@@ -31,7 +31,7 @@ class Parser {
     expect(...types) {
         const token = this.advance();
         if (!types.includes(token.type)) {
-            throw new SyntaxError(`Expected ${types.join(" or ")} but got ${token.type}`);
+            throw new SyntaxError(`Expected ${types.join(" or ")} but got ${token.type}(${token.lexeme} / ${token.line}:${token.col})`);
         }
         return token;
     }
@@ -102,8 +102,14 @@ class Parser {
         if (next.type === TokenType.KEYWORD && next.lexeme === Keywords.IF) return this.parseIfStatement();
         if (next.type === TokenType.KEYWORD && next.lexeme === Keywords.DISCARD) return this.parseDiscardStatement();
         if (next.type === TokenType.KEYWORD && next.lexeme === Keywords.RETURN) return this.parseReturnStatement();
+        
+        if (next.type === TokenType.IDENT) {
+            return this.parseFunctionCall();
+        }
+        
         return this.parseAssignment();
     }
+    
     
     parseReturnStatement() {
         this.expect(TokenType.KEYWORD);
@@ -204,6 +210,13 @@ class Parser {
         return left;
     }
 
+    parseFunctionCall() {
+        const name = this.peek().lexeme;
+        if (this.peek().type !== TokenType.LPAREN) {
+            return this.parseAssignment();
+        }
+    }    
+
     parseArithExpr() {
         let left = this.parseTerm();
         while (this.peek().type === TokenType.OPERATOR && [Operators.PLUS, Operators.MINUS].includes(this.peek().lexeme)) {
@@ -240,36 +253,61 @@ class Parser {
     }
 
     parseAtom() {
-        const token = this.peek();
+        let token = this.peek();
+    
         if (token.type === TokenType.NUMBER || token.type === TokenType.STRING) {
             return { type: "Literal", value: this.advance().lexeme };
         }
     
+        if (token.type === TokenType.LBRACKET) {
+            this.advance();
+            const elements = [];
+            if (this.peek().type !== TokenType.RBRACKET) {
+                do {
+                    elements.push(this.parseExpr());
+                } while (this.match(TokenType.OPERATOR) && this.tokens[this.i - 1].lexeme === ",");
+            }
+            this.expect(TokenType.RBRACKET);
+            return { type: "ListLiteral", elements };
+        }
+    
         if (token.type === TokenType.IDENT) {
             let node = { type: "Identifier", name: this.advance().lexeme };
+            token = this.peek();
     
-            if (this.peek().type === TokenType.LPAREN) {
+            while (token.type === TokenType.LPAREN) {
                 this.advance();
                 const args = [];
                 if (this.peek().type !== TokenType.RPAREN) {
                     do {
                         args.push(this.parseExpr());
-                    } while (this.match(TokenType.OPERATOR) && this.tokens[this.i - 1].lexeme === "," );
+                    } while (this.match(TokenType.OPERATOR) && this.tokens[this.i - 1].lexeme === ",");
                 }
                 this.expect(TokenType.RPAREN);
-                return { type: "FunctionCall", name: node.name, args };
+                node = { type: "FunctionCall", name: node.name, args };
+                token = this.peek();
             }
     
-            while (this.peek().type === TokenType.DOT) {
+            while (token.type === TokenType.LBRACKET) {
+                this.advance();
+                const indexExpr = this.parseExpr();
+                this.expect(TokenType.RBRACKET);
+                node = { type: "IndexAccess", list: node, index: indexExpr };
+                token = this.peek();
+            }
+    
+            while (token.type === TokenType.DOT) {
                 this.advance();
                 const field = this.expect(TokenType.IDENT, TokenType.META).lexeme;
                 node = { type: "FieldAccess", object: node, field };
+                token = this.peek();
             }
+    
             return node;
         }
     
         throw new SyntaxError(`Unexpected token: ${token.type}`);
-    }    
+    }
 }
 
 export function parse(tokens) {

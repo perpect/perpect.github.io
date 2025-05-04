@@ -79,6 +79,8 @@ class ScheduleTable {
         let dayLength = dateInfo.getDate();
         this.firstRow = this.table.insertRow();
         this.tableInfo = [[]];
+        this.peopleInfo = peopleInfo;
+        this.dateInfo = dateInfo;
         dateInfo.setDate(1);
         let dateCalc = dateInfo.getDay();
 
