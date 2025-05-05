@@ -1,12 +1,10 @@
 import {
     Keywords,
     Operators,
-    MetaAccessors,
     TokenType
 } from "./Token.js";
 
 const KEYWORDS = new Set(Object.values(Keywords));
-const META = new Set(Object.values(MetaAccessors));
 const TWO_CHAR_OPS = new Set([Operators.EQ, Operators.NEQ, Operators.GTE, Operators.LTE]);
 const ONE_CHAR_OPS = new Set([Operators.PLUS, Operators.MINUS, Operators.MUL, Operators.DIV, Operators.ASSIGN, Operators.GT, Operators.LT]);
 
@@ -123,7 +121,6 @@ export class Tokenizer {
             const id = this.match(/^[A-Za-z가-힣_][\w가-힣_]*/);
             if (id) {
                 if (KEYWORDS.has(id)) this.push(TokenType.KEYWORD, id);
-                else if (META.has(id)) this.push(TokenType.META, id);
                 else this.push(TokenType.IDENT, id);
                 continue;
             }

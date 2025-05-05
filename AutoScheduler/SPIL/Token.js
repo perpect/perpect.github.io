@@ -24,15 +24,6 @@ export const Operators = {
     LTE: "<="
 };
 
-export const MetaAccessors = {
-    COUNT: "수",
-    SUM: "합계",
-    AVG: "평균",
-    MAX: "최대",
-    MIN: "최소",
-    STDDEV: "표준편차"
-};
-
 export const TokenType = {
     NEWLINE: "NEWLINE",
     INDENT: "INDENT",

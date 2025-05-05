@@ -10,7 +10,7 @@ function setupAutoGenerationUI(p, scheduleTableMgr, today, scheduleBtnCon) {
   const textarea = document.createElement("textarea");
   textarea.id = "spilInput";
   textarea.rows = 8;
-  textarea.value = `시작:\n    비용 = 0\n루프:\n    만약 내일(0).근무 == "야":\n        만약 내일(1).근무 != "비":\n            폐기\n만약 길이(당일근무자("야")) == 0:\n    폐기\n판단:\n    -비용`;
+  textarea.value = `시작:\n    비용 = 0\n루프:\n    오늘 = 당일(0)\n    내일 = 당일(1)\n    만약 오늘.근무 == "야":\n        만약 내일.근무 != "비":\n            폐기\n    만약 길이(오늘.검색("야")) == 0:\n        폐기\n판단:\n    -비용`;
   const button = document.createElement("div");
   button.className = "smallBtn editBtn";
   button.id = "autoGenerateBtn";
@@ -22,10 +22,9 @@ function setupAutoGenerationUI(p, scheduleTableMgr, today, scheduleBtnCon) {
       const current = scheduleTableMgr.getSchedule(today);
       if (!current) return alert("근무표 없음");
 
-      const optimized = await simulatedAnnealing(current, spilAST, scheduleBtnCon, 3000);
+      const optimized = await simulatedAnnealing(current, spilAST, scheduleBtnCon);
       scheduleTableMgr.add(optimized, today, true);
       scheduleTableMgr.update(document.getElementById("privateTable"));
-    
   });
 
   container.appendChild(textarea);
@@ -125,7 +124,6 @@ function setupManualEdit(scheduleController, scheduleTableMgr, today) {
   }
 }
 
-// ScheduleController 확장 메서드 방어코드 포함
 if (typeof ScheduleController !== 'undefined') {
   ScheduleController.prototype.addScheduleType = function(typeObj) {
     this.scheduleTypeData = this.scheduleTypeData || [];
