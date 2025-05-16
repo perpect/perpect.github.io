@@ -4,17 +4,22 @@ export class DateObject {
       this.date = today;
   }
 
-  getField(field, env) {
+  getField(field, evaluator) {
     switch (field) {
         case "근무":
-            return this.scheduleTable[env.cursor.person] ?? undefined;
+            //if (evaluator.env.cursor.person !== undefined)
+            //    evaluator.addTraceStack(evaluator.env.cursor.person, this.date);
+            //console.log("근무", this.scheduleTable[env.cursor.person], env.cursor.person, this.date);
+            return this.scheduleTable[evaluator.env.cursor.person] ?? undefined;
         default:
             return undefined;
     }
   }
 
-  검색(target) {
+  검색(evaluator, target) {
       const result = [];
+      //if (evaluator.env.cursor.person !== undefined)
+      //  evaluator.addTraceStack(evaluator.env.cursor.person, this.date);
       for (let person = 0; person < this.scheduleTable.length; person++) {
         const work = this.scheduleTable[person];
         if(work === target) result.push(person);
@@ -31,7 +36,7 @@ export class PersonObject {
       this.schedule = scheduleRow;
   }
 
-  getField(field, env) {
+  getField(field, evaluator) {
       switch (field) {
           case "입대일":
               return this.info?.enlistmentDay?.getTime?.();
@@ -95,9 +100,12 @@ export const builtins = {
    * 당일(...): 현재 날짜에 n을 더한 날짜를 반환
    */
   "당일": (offset, evaluator) => {
+        const person = evaluator.env.cursor.person;
+        const day = evaluator.env.cursor.day;
+        //evaluator.addTrace(person, day);
         //console.log(evaluator.env.dates);
-        //console.log("당일", evaluator.env.dates?.[evaluator.env.cursor.day + offset[0]], evaluator.env.cursor.day + offset[0]);
-      return evaluator.env.dates?.[evaluator.env.cursor.day + offset[0]] ?? undefined;
+        //console.log("당일", evaluator.env.dates?.[day + offset[0]], day + offset[0]);
+      return evaluator.env.dates?.[day + offset[0]] ?? undefined;
   },
 
   /**

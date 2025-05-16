@@ -81,6 +81,7 @@ class ScheduleTable {
         this.tableInfo = [[]];
         this.peopleInfo = peopleInfo;
         this.dateInfo = dateInfo;
+        this.workData = [];
         dateInfo.setDate(1);
         let dateCalc = dateInfo.getDay();
 
@@ -98,6 +99,7 @@ class ScheduleTable {
 
         for (let i = 1; i < peopleInfo.length + 1; i++) {
             this.tableInfo.push([]);
+            this.workData.push(Array(dayLength).fill(''));
             const nowRow = this.table.insertRow();
             const personCell = nowRow.insertCell();
             personCell.insertAdjacentHTML("afterbegin", peopleInfo.getPerson(i - 1).name);

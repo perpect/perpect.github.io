@@ -9,11 +9,7 @@ export function createScheduleFromData(data, peopleInfo, dateInfo) {
   const newSchedule = new ScheduleTable(peopleInfo, new Date(dateInfo));
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
-      const type = data[i][j];
-      if (type) {
-        newSchedule.tableInfo[i + 1][j].classList.add(type + "Color");
-        newSchedule.tableInfo[i + 1][j].dataset.type = type;
-      }
+      newSchedule.workData[i][j] = data[i][j];
     }
   }
   return newSchedule;

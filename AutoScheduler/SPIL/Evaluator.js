@@ -6,16 +6,18 @@ import {
 } from "./Builtins.js";
 
 class Evaluator {
-    constructor(ast, environment = {}) {
+    constructor(ast, environment = {}, evaluatePos = null) {
         this.ast = ast;
         this.env = environment;
-        this.discarded = 0;
+        this.discarded = false;
         this.score = 0;
-        this.trace = [];
+        this.trace = new Set();
+        this.traceStack = [[]];
         this.functions = {};
         this.builtins = builtins;
         this.returning = false;
         this.returnValue = null;
+        this.evaluatePos = evaluatePos;
     }
 
     run() {
@@ -27,7 +29,7 @@ class Evaluator {
                 this.executeStartSection(section);
             }
             if (section.type === "LoopSection") {
-                this.executeLoopSection(section);
+                this.executeLoopSection(section, this.evaluatePos);
             }
             if (section.type === "JudgeSection") {
                 this.executeJudgeSection(section);
@@ -57,28 +59,42 @@ class Evaluator {
 
         for (let day = 0; day < dayCount; day++) {
             const column = [];
-            for (let person = 1; person < personCount; person++) {
+            for (let person = 0; person < personCount; person++) {
                 column.push(schedule[person][day]);
             }
-            const dateInfo = this.env.dateInfo.getDate?.(day);
             this.env.dates.push(new DateObject(column, day));
         }
 
-        for (let person = 1; person < personCount; person++) {
+        for (let person = 0; person < personCount; person++) {
             this.env.crews.push(new PersonObject(
                 person,
-                this.env.peopleInfo.getPerson(person - 1),
+                this.env.peopleInfo.getPerson(person),
                 schedule[person]
             ));
         }
+        this.env.addTraceStack = this.addTraceStack;
+        //console.log(this.env.dates);
+        //console.log(this.env.crews);
     }
 
-    executeLoopSection(section) {
+    executeLoopSection(section, evaluatePos = null) {
         const schedule = this.env.scheduleTable;
         const dayCount = schedule[1].length;
         const personCount = schedule.length;
-
-        for (let person = 1; person < personCount; person++) {
+        if (evaluatePos) {
+            const person = evaluatePos.person;
+            const day = evaluatePos.day;
+            this.env.cursor = {
+                person,
+                day
+            };
+            for (const stmt of section.body) {
+                this.executeStatement(stmt);
+                if (this.discarded || this.returning) break;
+            }
+            return;
+        }
+        for (let person = 0; person < personCount; person++) {
             for (let day = 0; day < dayCount; day++) {
                 //if (this.discarded) return;
                 this.env.cursor = {
@@ -87,7 +103,7 @@ class Evaluator {
                 };
                 for (const stmt of section.body) {
                     this.executeStatement(stmt);
-                    //if (this.discarded || this.returning) break;
+                    if (this.discarded || this.returning) break;
                 }
             }
         }
@@ -96,9 +112,9 @@ class Evaluator {
     executeJudgeSection(section) {
         for (const judge of section.body) {
             const value = this.evaluateExpr(judge.expr);
-            if (judge.op === '-') this.score -= value;
-            else if (judge.op === '+') this.score += value;
-            this.score -= this.discarded * 1000;
+            if (judge.op === '-') this.score += value;
+            else if (judge.op === '+') this.score -= value;
+            //this.score -= this.discarded * 1000;
         }
     }
 
@@ -109,25 +125,14 @@ class Evaluator {
         } else if (stmt.type === "IfStatement") {
             const condition = this.evaluateExpr(stmt.condition);
             if (condition) {
+                this.traceStack.push([]);
                 for (const inner of stmt.body) {
                     this.executeStatement(inner);
-                    //if (this.discarded || this.returning) break;
                 }
+                this.traceStack.pop();
             }
         } else if (stmt.type === "DiscardStatement") {
-            if (stmt.type === "DiscardStatement") {
-                const { person, day } = this.env.cursor ?? {};
-                this.discarded += 1;
-              
-                this.addTrace(person - 1, day);
-              
-                const date = this.env.dates?.[day];
-                const personObj = this.env.crews?.[person];
-                if (date && date.scheduleTable) {
-                  //console.log("Discard 원인 추정: 날짜", date, "근무자", personObj);
-                }
-              }
-            this.discarded += 1;
+            this.handleDiscard();
         } else if (stmt.type === "ReturnStatement") {
             this.returnValue = this.evaluateExpr(stmt.expr);
             this.returning = true;
@@ -226,11 +231,13 @@ class Evaluator {
             const method = object?.[node.field];
             const args = node.args.map(arg => this.evaluateExpr(arg));
 
+            //console.log("method", node.object);
+
             if (typeof method !== 'function') {
                 throw new Error(`${node.field}는 호출 가능한 필드가 아닙니다.`);
             }
 
-            return method.apply(object, args);
+            return method.apply(object, [this, args]);
         }
         if (node.type === "ListLiteral") {
             return node.elements.map(el => this.evaluateExpr(el));
@@ -244,17 +251,18 @@ class Evaluator {
         const field = node.field;
 
         if (typeof object?.getField === "function") {
-            return object.getField(field, this.env);
+            return object.getField(field, this);
         }
 
         return object?.[field];
     }
 
-    addTrace(person, day) {
-        this.trace.push({
+    addTraceStack(person, day) {
+        this.traceStack[this.traceStack.length - 1].push([
             person,
             day
-        });
+        ]);
+        //console.log("traceStack", this.traceStack);
     }
 
     parseLiteral(value) {
@@ -263,8 +271,27 @@ class Evaluator {
         }
         return value;
     }
+
+    handleDiscard() {
+        this.discarded = true;
+        for (const traceIf of this.traceStack) {
+            for (const trace of traceIf)
+                this.trace.add(trace);
+        }
+      }
 }
 
 export function evaluate(ast, environment = {}) {
     return new Evaluator(ast, environment).run();
+}
+
+export function evaluateAt(ast, environment = {}, cursor) {
+    const evaluator = new Evaluator(ast, environment, cursor);
+    const result = evaluator.run();
+
+    return {
+        discarded: result.discarded,
+        partialScore: result.score,
+        trace: Array.from(result.trace)
+    };
 }

@@ -1,36 +1,76 @@
 import { tokenize } from "./SPIL/Lexer.js";
-import { parse } from "./SPIL/Parser.js";
-import { simulatedAnnealing } from "./SimulatedAnnealing.js";
+import { parse }     from "./SPIL/Parser.js";
+import {
+  simulatedAnnealing,
+  // backTracking               // 필요 시 직접 호출 가능
+} from "./SimulatedAnnealing.js";
 
-// 자동 근무 생성 탭
-function setupAutoGenerationUI(p, scheduleTableMgr, today, scheduleBtnCon) {
+// import ALNSOptimizer from "./ALNSOptimizer.js";  // 비교용으로 남겨둠
+
+/* ───────────────── 자동 근무 생성 탭 ───────────────── */
+function setupAutoGenerationUI(p, scheduleTableMgr, today, scheduleCtrl) {
   const container = document.getElementById("privateTab-2");
   container.innerHTML = "";
 
+  /* 텍스트 영역: 기본 SPIL 예시 */
   const textarea = document.createElement("textarea");
-  textarea.id = "spilInput";
-  textarea.rows = 8;
-  textarea.value = `시작:\n    비용 = 0\n루프:\n    오늘 = 당일(0)\n    내일 = 당일(1)\n    만약 오늘.근무 == "야":\n        만약 내일.근무 != "비":\n            폐기\n    만약 길이(오늘.검색("야")) == 0:\n        폐기\n판단:\n    -비용`;
+  textarea.id    = "spilInput";
+  textarea.rows  = 8;
+  textarea.value = `시작:
+    적합도 = 0
+루프:
+    오늘 = 당일(0)
+    내일 = 당일(1)
+    만약 오늘.근무 == "야":
+        만약 내일.근무 != "비":
+            적합도 = 적합도 + 1
+    만약 길이(오늘.검색("야")) != 1:
+        적합도 = 적합도 + 1
+판단:
+    -적합도`;
+
+  /* 버튼 */
   const button = document.createElement("div");
   button.className = "smallBtn editBtn";
-  button.id = "autoGenerateBtn";
+  button.id        = "autoGenerateBtn";
   button.textContent = "자동 근무표 생성";
 
+  /* 클릭 핸들러 */
   button.addEventListener("click", async () => {
-      const code = textarea.value;
-      const spilAST = parse(tokenize(code));
-      const current = scheduleTableMgr.getSchedule(today);
-      if (!current) return alert("근무표 없음");
+    const code    = textarea.value;
+    const spilAST = parse(tokenize(code));
+    const current = scheduleTableMgr.getSchedule(today);
+    if (!current) return alert("근무표 없음");
 
-      const optimized = await simulatedAnnealing(current, spilAST, scheduleBtnCon);
-      scheduleTableMgr.add(optimized, today, true);
-      scheduleTableMgr.update(document.getElementById("privateTable"));
+    /* === Simulated Annealing (A안) 실행 === */
+    const saOptions = { iterations: 20000, initialTemp: 120, cooling: 0.997 };
+    const bestSchedule = await simulatedAnnealing(
+      current,
+      spilAST,
+      scheduleCtrl,
+      saOptions
+    );
+
+    /* === ALNS 비교용 (원한다면 주석 해제) ===
+    const optimizer   = new ALNSOptimizer(current, spilAST, scheduleCtrl, {
+      iterations: 10000,
+      randomRemovalRate: 0.2,
+      initialTemp: 150,
+      cooling: 0.998
+    });
+    const { bestSchedule } = optimizer.optimize();
+    ======================================== */
+
+    console.log("최적화된 근무표:", bestSchedule);
+
+    /* 결과 반영 */
+    scheduleTableMgr.add(bestSchedule, today, true);
+    scheduleTableMgr.update(document.getElementById("privateTable"));
   });
 
   container.appendChild(textarea);
   container.appendChild(button);
 }
-
 // 근무 유형 설정 탭
 function setupScheduleConfigUI(scheduleController) {
   const container = document.getElementById("privateTab-3");
