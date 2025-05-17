@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SPIL ver.alpha-L — EBNF Specification</title>
+<style>
+  body   { font-family: "SFMono-Regular", Consolas, Menlo, monospace; background:#f9f9f9; line-height:1.45; }
+  h1     { font-size:1.4rem; }
+  pre    { background:#fff; border:1px solid #ddd; padding:1rem; overflow:auto; }
+  code   { color:#2a2a2a; }
+</style>
+</head>
+
+<body>
+<h1>SPIL ver.alpha-L — Complete EBNF (draft&nbsp;1)</h1>
+
+<pre><code>
+FILE           ::= START-BLOCK UPDATE-BLOCK END-BLOCK EOF                 
+
+START-BLOCK    ::= "start"  BLOCK
+UPDATE-BLOCK   ::= "update" BLOCK
+END-BLOCK      ::= "end"    BLOCK
+
+BLOCK          ::= "{" { STATEMENT } "}"
+
+STATEMENT      ::= IF-STMT
+                 | ASSIGN-STMT
+                 | RETURN-STMT
+                 | FUNC-DECL
+                 | EXPR-STMT
+                 | ";"                           /* empty */
+
+-- control flow ------------------------------------------------------------
+
+IF-STMT        ::= "if"   "(" EXPR ")" BLOCK
+                   { "elif" "(" EXPR ")" BLOCK }
+                   [ "else" BLOCK ]
+
+RETURN-STMT    ::= "return" EXPR ";"
+
+-- function definition -----------------------------------------------------
+
+FUNC-DECL      ::= "function" IDENT "(" [ PARAM-LIST ] ")" BLOCK
+
+PARAM-LIST     ::= PARAM { "," PARAM }
+PARAM          ::= IDENT [ "=" EXPR ]
+
+-- variable assignment -----------------------------------------------------
+
+ASSIGN-STMT    ::= IDENT ASSIGN-OP EXPR ";"
+ASSIGN-OP      ::= "=" | "+=" | "-="          /* only these three */
+
+EXPR-STMT      ::= EXPR ";"
+
+-- expressions (JS-like precedence) ----------------------------------------
+
+EXPR           ::= LOGIC-OR
+
+LOGIC-OR       ::= LOGIC-AND { "||" LOGIC-AND }
+LOGIC-AND      ::= EQUALITY  { "&&" EQUALITY }
+EQUALITY       ::= COMPARE   { ("==" | "!=") COMPARE }
+COMPARE        ::= ADD       { ("<" | "<=" | ">" | ">=") ADD }
+ADD            ::= MULT      { ("+" | "-") MULT }
+MULT           ::= UNARY     { ("*" | "/" | "%") UNARY }
+UNARY          ::= [ "!" | "-" ] PRIMARY
+PRIMARY        ::= LITERAL
+                 | IDENT
+                 | CALL
+                 | "(" EXPR ")"
+
+CALL           ::= IDENT "(" [ ARG-LIST ] ")"
+ARG-LIST       ::= EXPR { "," EXPR }
+
+LITERAL        ::= NUMBER | STRING | "true" | "false"
+
+-- lexical -----------------------------------------------------------------
+
+IDENT          ::=  Letter { Letter | Digit | "_" }
+NUMBER         ::=  Digit { Digit } [ "." { Digit } ]
+STRING         ::=  '"' { ANY-CHAR-EXCEPT-QUOTE-OR-ESC } '"'
+
+LINE-COMMENT   ::=  "//"  { ANY-CHAR }  &lt;newline&gt;
+BLOCK-COMMENT  ::=  "/*"  { ANY-CHAR }  "*/"
+</code></pre>
+
+</body>
+</html>

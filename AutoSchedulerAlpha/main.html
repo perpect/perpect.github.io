@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="utf-8" />
+<title>근무표 편집기 – always-visible calendar</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font:14px/1.4 "Noto Sans KR",sans-serif}
+body{background:#ececec;color:#111;padding:16px}
+:root{--blue:#95b7f5;--red:#f6a4a4}
+
+header{display:flex;gap:12px;margin-bottom:12px}
+.tab{flex:1;height:40px;display:flex;align-items:center;justify-content:center;
+      border-radius:6px;background:#ddd;cursor:pointer;font-weight:600}
+.tab.active{background:#fff;border:2px solid #222}
+
+#layout{display:grid;grid-template-columns:180px 1fr;gap:20px}
+
+/* 세로 탭 */
+.leftBtn{width:100%;height:40px;background:#fff;border:1px solid #888;border-radius:4px;
+         cursor:pointer;font-weight:600;margin-bottom:10px}
+.leftBtn.active{background:#222;color:#fff}
+
+/* 달력 */
+#monthBar{display:flex;justify-content:center;align-items:center;margin-bottom:8px}
+#monthBar button{background:none;border:none;font-size:22px;padding:4px 12px;cursor:pointer}
+#monthBar span{font-weight:700;font-size:18px}
+
+#grid{display:grid;border:1px solid #bbb;margin-bottom:18px}
+#grid .hd{background:#ddd;font-weight:600;text-align:center}
+#grid div{border:1px solid #ccc;height:28px;display:flex;align-items:center;justify-content:center}
+.cell:hover{outline:2px solid #111;cursor:pointer}
+.blue{background:var(--blue);color:#fff}
+.red {background:var(--red);color:#fff}
+
+/* 서브 패널  */
+.panel{display:none}
+.panel.active{display:block}
+.panel h2{margin-bottom:12px}
+.panel pre{background:#fff;padding:12px;border:1px solid #ccc}
+</style>
+</head>
+
+<body>
+
+<!-- ─── 상단 탭 바 (동작은 예시 수준) ─────────────────── -->
+<header>
+  <div class="tab active">🗂 병사 근무표</div>
+  <div class="tab">💼 간부 근무표</div>
+  <div class="tab">🖋 병력일보</div>
+  <div class="tab">👥 인원·휴일</div>
+  <div class="tab">▶ 한 눈에 보기</div>
+</header>
+
+<div id="layout">
+  <!-- ─ 왼쪽 세로 탭 ─ -->
+  <div id="sideTabs">
+    <button class="leftBtn active" data-target="dummy1">근무표 목록</button>
+    <button class="leftBtn"        data-target="editPanel">수정하기</button>
+    <button class="leftBtn"        data-target="autoPanel">자동 생성</button>
+    <button class="leftBtn"        data-target="settingPanel">근무 설정</button>
+  </div>
+
+  <!-- ─ 오른쪽 메인 영역 ─ -->
+  <div id="mainArea">
+     <!-- 달력은 항상 보임 -->
+     <div id="monthBar">
+        <button id="prevM">‹</button>
+        <span id="monthTitle"></span>
+        <button id="nextM">›</button>
+     </div>
+     <div id="grid"></div>
+
+     <!-- ▼ 아래는 세로 탭이 전환하는 “서브 패널” ▼ -->
+     <div id="subPanels">
+        <div id="dummy1" class="panel active">
+          <h2>근무표 목록</h2><pre>// 목록 기능 넣기</pre>
+        </div>
+        <div id="editPanel" class="panel">
+          <h2>수정하기</h2><pre>// 세부 수정 UI</pre>
+        </div>
+        <div id="autoPanel" class="panel">
+          <h2>근무표 자동 생성</h2>
+          <button onclick="alert('SPIL 엔진 호출!')">Generate!</button>
+        </div>
+        <div id="settingPanel" class="panel">
+          <h2>근무 설정</h2><pre>// 근무 유형 / 시간 설정</pre>
+        </div>
+     </div>
+  </div>
+</div>
+
+<script>
+/* ── 세로 탭 → 서브패널 토글 ─────────────────────────── */
+const sideBtns=[...document.querySelectorAll('.leftBtn')];
+const panels  =[...document.querySelectorAll('#subPanels .panel')];
+
+sideBtns.forEach(btn=>{
+  btn.onclick=()=>{
+    sideBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const id=btn.dataset.target;
+    panels.forEach(p=>p.classList.toggle('active',p.id===id));
+  };
+});
+
+/* ── 간단 달력 빌드 ─────────────────────────────────── */
+const NAMES=['이정민','B','C','D'];
+let y=2025,m=4;
+const grid=document.getElementById('grid');
+
+function cell(cls,t){const d=document.createElement('div');d.className=cls;d.textContent=t;return d;}
+
+function buildGrid(){
+  grid.innerHTML='';
+  const days=new Date(y,m+1,0).getDate();
+  grid.style.gridTemplateColumns=`120px repeat(${days},28px)`;
+  grid.appendChild(cell('hd',''));
+  for(let d=1;d<=days;d++) grid.appendChild(cell('hd',d));
+  NAMES.forEach(name=>{
+    grid.appendChild(cell('hd',name));
+    for(let d=1;d<=days;d++){
+      const c=cell('cell','');
+      c.onclick=()=>c.className=c.className==='cell'?'cell blue':c.className==='cell blue'?'cell red':'cell';
+      grid.appendChild(c);
+    }
+  });
+  document.getElementById('monthTitle').textContent=`${y}년 ${m+1}월`;
+}
+document.getElementById('prevM').onclick=()=>{m--;if(m<0){m=11;y--;}buildGrid();}
+document.getElementById('nextM').onclick=()=>{m++;if(m>11){m=0;y++;}buildGrid();}
+buildGrid();
+</script>
+</body>
+</html>
