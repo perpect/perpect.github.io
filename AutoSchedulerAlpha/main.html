@@ -1,132 +1,150 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head><meta charset="utf-8" />
-<title>근무표 편집기 – always-visible calendar</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;font:14px/1.4 "Noto Sans KR",sans-serif}
-body{background:#ececec;color:#111;padding:16px}
-:root{--blue:#95b7f5;--red:#f6a4a4}
-
-header{display:flex;gap:12px;margin-bottom:12px}
-.tab{flex:1;height:40px;display:flex;align-items:center;justify-content:center;
-      border-radius:6px;background:#ddd;cursor:pointer;font-weight:600}
-.tab.active{background:#fff;border:2px solid #222}
-
-#layout{display:grid;grid-template-columns:180px 1fr;gap:20px}
-
-/* 세로 탭 */
-.leftBtn{width:100%;height:40px;background:#fff;border:1px solid #888;border-radius:4px;
-         cursor:pointer;font-weight:600;margin-bottom:10px}
-.leftBtn.active{background:#222;color:#fff}
-
-/* 달력 */
-#monthBar{display:flex;justify-content:center;align-items:center;margin-bottom:8px}
-#monthBar button{background:none;border:none;font-size:22px;padding:4px 12px;cursor:pointer}
-#monthBar span{font-weight:700;font-size:18px}
-
-#grid{display:grid;border:1px solid #bbb;margin-bottom:18px}
-#grid .hd{background:#ddd;font-weight:600;text-align:center}
-#grid div{border:1px solid #ccc;height:28px;display:flex;align-items:center;justify-content:center}
-.cell:hover{outline:2px solid #111;cursor:pointer}
-.blue{background:var(--blue);color:#fff}
-.red {background:var(--red);color:#fff}
-
-/* 서브 패널  */
-.panel{display:none}
-.panel.active{display:block}
-.panel h2{margin-bottom:12px}
-.panel pre{background:#fff;padding:12px;border:1px solid #ccc}
-</style>
+<head><meta charset="utf-8">
+<title>AutoScheduler</title>
+<link rel="stylesheet" href="main.css">
 </head>
-
 <body>
 
-<!-- ─── 상단 탭 바 (동작은 예시 수준) ─────────────────── -->
-<header>
-  <div class="tab active">🗂 병사 근무표</div>
-  <div class="tab">💼 간부 근무표</div>
-  <div class="tab">🖋 병력일보</div>
-  <div class="tab">👥 인원·휴일</div>
-  <div class="tab">▶ 한 눈에 보기</div>
-</header>
+<!-- 상단 탭 -->
+<div class="tabs">
+  <input type="radio" id="topTab1" name="topTab" checked>
+  <label for="topTab1">🗂 병사 근무표</label>
+  <input type="radio" id="topTab2" name="topTab">
+  <label for="topTab2">💼 간부 근무표</label>
+  <input type="radio" id="topTab3" name="topTab">
+  <label for="topTab3">🖋 병력일보</label>
+</div>
 
 <div id="layout">
-  <!-- ─ 왼쪽 세로 탭 ─ -->
-  <div id="sideTabs">
-    <button class="leftBtn active" data-target="dummy1">근무표 목록</button>
-    <button class="leftBtn"        data-target="editPanel">수정하기</button>
-    <button class="leftBtn"        data-target="autoPanel">자동 생성</button>
-    <button class="leftBtn"        data-target="settingPanel">근무 설정</button>
+  <!-- 좌측 라디오 탭 -->
+  <div class="side-tabs">
+    <input type="radio" id="sideTab1" name="sideTab" checked>
+    <label for="sideTab1">📋 근무표 목록</label>
+
+    <input type="radio" id="sideTab2" name="sideTab">
+    <label for="sideTab2">✏ 수정하기</label>
+
+    <input type="radio" id="sideTab3" name="sideTab">
+    <label for="sideTab3">⚙ 자동 생성</label>
+
+    <input type="radio" id="sideTab4" name="sideTab">
+    <label for="sideTab4">🔧 근무 설정</label>
   </div>
 
-  <!-- ─ 오른쪽 메인 영역 ─ -->
+  <!-- 오른쪽 메인 패널 -->
   <div id="mainArea">
-     <!-- 달력은 항상 보임 -->
-     <div id="monthBar">
-        <button id="prevM">‹</button>
-        <span id="monthTitle"></span>
-        <button id="nextM">›</button>
-     </div>
-     <div id="grid"></div>
+    <!-- 달력 헤더 -->
+    <div id="monthBar">
+      <button id="prevM">‹</button>
+      <span id="monthTitle">2025년 5월</span>
+      <button id="calendarIcon">📅</button>
+      <button id="nextM">›</button>
+    </div>
 
-     <!-- ▼ 아래는 세로 탭이 전환하는 “서브 패널” ▼ -->
-     <div id="subPanels">
-        <div id="dummy1" class="panel active">
-          <h2>근무표 목록</h2><pre>// 목록 기능 넣기</pre>
-        </div>
-        <div id="editPanel" class="panel">
-          <h2>수정하기</h2><pre>// 세부 수정 UI</pre>
-        </div>
-        <div id="autoPanel" class="panel">
-          <h2>근무표 자동 생성</h2>
-          <button onclick="alert('SPIL 엔진 호출!')">Generate!</button>
-        </div>
-        <div id="settingPanel" class="panel">
-          <h2>근무 설정</h2><pre>// 근무 유형 / 시간 설정</pre>
-        </div>
-     </div>
+    <!-- 달력 그리드 -->
+    <div id="grid"></div>
+
+    <!-- 세로 탭 패널 -->
+    <div class="sidePanel panel1">
+      <h3>📋 근무표 목록</h3><p>TODO: 목록 기능</p>
+    </div>
+    <div class="sidePanel panel2">
+      <h3>✏ 수정하기</h3><p>TODO: 셀 편집 등</p>
+    </div>
+    <div class="sidePanel panel3">
+      <h3>⚙ 자동 생성</h3>
+      <button onclick="alert('SPIL 호출')">Generate</button>
+    </div>
+    <div class="sidePanel panel4">
+      <h3>🔧 근무 설정</h3><p>TODO: 근무 유형 편집</p>
+    </div>
   </div>
 </div>
 
-<script>
-/* ── 세로 탭 → 서브패널 토글 ─────────────────────────── */
-const sideBtns=[...document.querySelectorAll('.leftBtn')];
-const panels  =[...document.querySelectorAll('#subPanels .panel')];
-
-sideBtns.forEach(btn=>{
-  btn.onclick=()=>{
-    sideBtns.forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    const id=btn.dataset.target;
-    panels.forEach(p=>p.classList.toggle('active',p.id===id));
-  };
-});
-
-/* ── 간단 달력 빌드 ─────────────────────────────────── */
-const NAMES=['이정민','B','C','D'];
-let y=2025,m=4;
-const grid=document.getElementById('grid');
-
-function cell(cls,t){const d=document.createElement('div');d.className=cls;d.textContent=t;return d;}
+<!-- 드롭다운 -->
+<div id="ymDropdown">
+  <select id="yearSel"></select>
+  <select id="monthSel">
+    <option>1월</option><option>2월</option><option>3월</option><option>4월</option>
+    <option>5월</option><option>6월</option><option>7월</option><option>8월</option>
+    <option>9월</option><option>10월</option><option>11월</option><option>12월</option>
+  </select>
+  <button onclick="applyYM()">이동</button>
+</div>
+<script src="./ScheduleTable/Calandar.js"></script>
+<script src="./ScheduleTable/Event.js"></script>
+<script src="./ScheduleTable/Person.js"></script>
+<script src="./ScheduleTable/ScheduleType.js"></script>
+<script src="./ScheduleTable.js"></script>
+<script type="module">
+import { Person, PersonManager } from './ScheduleTable/Person.js';
+const grid = document.getElementById('grid');
+const monthTitle = document.getElementById('monthTitle');
+const dropdown = document.getElementById('ymDropdown');
+const now = new Date();
+let year = now.getFullYear(), month = now.getMonth();
+const people = new PersonManager();
+people.add(new Person('A', new Date(2001, 1, 1), new Date(2024, 8, 20), "01012341234", "00-70000001", 859, "상병"));
+people.add(new Person('B', new Date(2011, 11, 11), new Date(2024, 9, 25), "11012341234", "01-70000001", 861, "상병"));
+people.add(new Person('C', new Date(2021, 3, 26), new Date(2024, 10, 30), "21012341234", "02-70000001", 862, "일병"));
+people.add(new Person('D', new Date(2004, 6, 15), new Date(2024, 12, 5), "31012341234", "03-70000001", 867, "이병"));
 
 function buildGrid(){
-  grid.innerHTML='';
-  const days=new Date(y,m+1,0).getDate();
-  grid.style.gridTemplateColumns=`120px repeat(${days},28px)`;
+  grid.innerHTML = '';
+  const days = new Date(year, month+1, 0).getDate();
+  grid.style.gridTemplateColumns = `120px repeat(${days}, 28px)`;
   grid.appendChild(cell('hd',''));
-  for(let d=1;d<=days;d++) grid.appendChild(cell('hd',d));
-  NAMES.forEach(name=>{
+  for(let d=1; d<=days; d++) grid.appendChild(cell('hd', d));
+  people.forEach(name=>{
     grid.appendChild(cell('hd',name));
-    for(let d=1;d<=days;d++){
-      const c=cell('cell','');
-      c.onclick=()=>c.className=c.className==='cell'?'cell blue':c.className==='cell blue'?'cell red':'cell';
+    for(let d=1; d<=days; d++) {
+      const c = cell('cell','');
+      c.onclick = ()=> toggle(c);
       grid.appendChild(c);
     }
   });
-  document.getElementById('monthTitle').textContent=`${y}년 ${m+1}월`;
+  monthTitle.textContent = `${year}년 ${month+1}월`;
 }
-document.getElementById('prevM').onclick=()=>{m--;if(m<0){m=11;y--;}buildGrid();}
-document.getElementById('nextM').onclick=()=>{m++;if(m>11){m=0;y++;}buildGrid();}
+function cell(cls, txt){
+  const div = document.createElement('div');
+  div.className = cls;
+  div.textContent = txt;
+  return div;
+}
+function toggle(el){
+  if(el.classList.contains('blue')) el.className = 'cell red';
+  else if(el.classList.contains('red')) el.className = 'cell';
+  else el.className = 'cell blue';
+}
+
+document.getElementById('prevM').onclick = ()=>{
+  month--; if(month<0){month=11;year--;} buildGrid();
+};
+document.getElementById('nextM').onclick = ()=>{
+  month++; if(month>11){month=0;year++;} buildGrid();
+};
+document.getElementById('calendarIcon').onclick = (e)=>{
+  const rect = e.target.getBoundingClientRect();
+  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  dropdown.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  dropdown.style.left = (rect.left + window.scrollX - 60) + 'px';
+  document.getElementById('yearSel').value = year;
+  document.getElementById('monthSel').selectedIndex = month;
+};
+function applyYM(){
+  year = parseInt(document.getElementById('yearSel').value);
+  month = document.getElementById('monthSel').selectedIndex;
+  buildGrid();
+  dropdown.style.display = 'none';
+}
+const yearSel = document.getElementById('yearSel');
+for(let y=2020; y<=2030; y++){
+  const opt = document.createElement('option');
+  opt.value = y; opt.textContent = y + '년';
+  if(y === year) opt.selected = true;
+  yearSel.appendChild(opt);
+}
 buildGrid();
 </script>
 </body>

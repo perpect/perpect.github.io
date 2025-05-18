@@ -1,0 +1,104 @@
+* { box-sizing: border-box; font-family: sans-serif; }
+body { padding: 20px; background: #f4f4f4; color: #222; }
+
+:root {
+  --blue: #95b7f5;
+  --red: #f6a4a4;
+  --gray: #ddd;
+}
+
+/* ─── 상단 탭 ─── */
+.tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.tabs input[type="radio"] { display: none; }
+.tabs label {
+  padding: 8px 16px;
+  background: var(--gray);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.tabs input:checked + label {
+  background: #fff;
+  border: 2px solid #333;
+}
+
+/* ─── 메인 레이아웃 ─── */
+#layout { display: grid; grid-template-columns: 180px 1fr; gap: 20px; }
+
+/* ─── 좌측 세로 탭 ─── */
+.side-tabs input[type="radio"] { display: none; }
+.side-tabs label {
+  display: block;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid #888;
+  background: #fff;
+  cursor: pointer;
+  font-weight: bold;
+}
+.side-tabs input:checked + label {
+  background: #222;
+  color: #fff;
+}
+
+/* ─── 달력 헤더 ─── */
+#monthBar {
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px; gap: 8px;
+}
+#monthBar button {
+  font-size: 20px; background: none; border: none; cursor: pointer;
+}
+#monthTitle { font-weight: 600; font-size: 18px; }
+#calendarIcon {
+  font-size: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+/* ─── 달력 드롭다운 ─── */
+#ymDropdown {
+  display: none;
+  position: absolute;
+  background: white;
+  padding: 10px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+#ymDropdown select {
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+/* ─── 달력 그리드 ─── */
+#grid { display: grid; border: 1px solid #aaa; margin-bottom: 16px; }
+#grid .hd {
+  background: #ddd;
+  font-weight: bold;
+  text-align: center;
+}
+#grid div {
+  border: 1px solid #ccc;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cell:hover { outline: 2px solid #111; cursor: pointer; }
+.blue { background: var(--blue); color: #fff; }
+.red  { background: var(--red);  color: #fff; }
+
+/* ─── 세로 탭 패널 ─── */
+.sidePanel { display: none; }
+#sideTab1:checked ~ #mainArea .panel1,
+#sideTab2:checked ~ #mainArea .panel2,
+#sideTab3:checked ~ #mainArea .panel3,
+#sideTab4:checked ~ #mainArea .panel4 {
+  display: block;
+}
+.sidePanel { padding: 10px; background: #fff; border: 1px solid #ccc; border-radius: 6px; }
