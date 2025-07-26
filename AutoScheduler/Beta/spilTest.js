@@ -13,11 +13,11 @@ class DutyType {
 }
 
 const Duty = Object.freeze({
-  DAY:   new DutyType("DAY", 10, isDay = true),
-  NIGHT: new DutyType("NIGHT", 14, isNight = true),
+  DAY:   new DutyType("DAY", 10, true, false, false),
+  NIGHT: new DutyType("NIGHT", 14, false, true, false),
   OFF:   new DutyType("OFF", 0),
-  ALL:   new DutyType("ALL", 24, isDay = true, isNight = true),
-  VACATION: new DutyType("VACATION", 0, isLeft = true)
+  ALL:   new DutyType("ALL", 24, true, true, false),
+  VACATION: new DutyType("VACATION", 0, false, false, true)
 });
 const DUTIES = Object.values(Duty);
 
