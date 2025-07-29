@@ -60,8 +60,8 @@ class Schedule {
   
   duty(dayIdx, personIdx) { return this.grid[dayIdx][personIdx]; }
   /* 행/열 채움 여부 */
-  isRowFilled(personIdx) { return this.personFillCount[personIdx] >= this.days; }
-  isColumnFilled(dayIdx) { return this.dayFillCount[dayIdx] >= this.people.length; }
+  isPersonFilled(personIdx) { return this.personFillCount[personIdx] >= this.days; }
+  isDayFilled(dayIdx) { return this.dayFillCount[dayIdx] >= this.people.length; }
 
   /* 디버그 출력 */
   toString(){

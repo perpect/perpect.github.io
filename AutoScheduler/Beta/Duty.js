@@ -15,8 +15,8 @@ const Duty = Object.freeze({
   DAY:   new DutyType("주", 10, true, false, false),
   NIGHT: new DutyType("야", 14, false, true, false),
   OFF:   new DutyType("비", 0),
-  ALL:   new DutyType("짱", 24, true, true, false),
-  VACATION: new DutyType("휴", 0, false, false, true)
+  //ALL:   new DutyType("짱", 24, true, true, false),
+  //VACATION: new DutyType("휴", 0, false, false, true)
 });
 const DUTIES = Object.values(Duty);
 

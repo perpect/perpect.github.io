@@ -12,11 +12,11 @@ function solve(schedule, rules){
   const parentOf = [];
 
   const rowNeighbors  = Array.from({ length: D }, (_,d)=>
-    Array.from({ length: P }, (_,p)=> [...Array(P).keys()].filter(j=>j!==p).map(j=>[d, j]))
+    Array.from({ length: P }, (_,p)=> [...Array(P).keys()].filter(j => j !== p).map(j => [d, j]))
   );
   
   const colNeighbors  = Array.from({ length: P }, (_,p)=>
-    Array.from({ length: D }, (_,d)=> [...Array(D).keys()].filter(i=>i!==d).map(i=>[i, p]))
+    Array.from({ length: D }, (_,d)=> [...Array(D).keys()].filter(i => i!==d).map(i => [i, p]))
   );
 
   function neighborsOf(day, person){
@@ -59,7 +59,7 @@ function forwardCheck(schedule, rules, day, person, trail){
   function chooseVar(){
     let best = null, bestSize = Infinity;
     for (let d = 0; d < D; d++){
-      if (schedule.isColumnFilled(d)) continue;
+      if (schedule.isDayFilled(d)) continue;
       for (let p = 0; p < P; p++){
         if (schedule.duty(d, p)) continue;
         const size = schedule.getDomain(d, p).size;
@@ -73,21 +73,40 @@ function forwardCheck(schedule, rules, day, person, trail){
     return best;
   }
 
+  function countPruned(d, p, duty){
+    let pruned = 0;
+    schedule.setDuty(d, p, duty);
+
+    for (const [d2, p2] of neighborsOf(d, p)){
+      if (schedule.duty(d2, p2)) continue;
+      for (const cand of schedule.domain[d2][p2]){
+        schedule.setDuty(d2, p2, cand);
+        const ok = rules.every(r => r.isPartialValid(schedule, d2, p2));
+        schedule.unsetDuty(d2, p2);
+        if (!ok) pruned++;
+      }
+    }
+
+    schedule.unsetDuty(d, p);
+    return pruned;
+  }
+
+
   function dfs(depth){
     const varPos = chooseVar();
     if (!varPos){
       const okFinal = rules.every(r=>r.isFinalValid(schedule));
       if (okFinal) return { success:true, conflict:new Set(), jumpDepth:-1 };
       const cf = new Set();
-      for (let d=0; d<D; d++){
-        if (!rules.every(r=>r.isDayValid(schedule,d)))
-          for (let p=0; p<P; p++) cf.add(indexOf(d,p));
+      for (let d = 0; d < D; d++){
+        if (!rules.every(r => r.isDayValid(schedule,d)))
+          for (let p = 0; p < P; p++) cf.add(indexOf(d, p));
       }
-      for (let p=0; p<P; p++){
-        if (!rules.every(r=>r.isPersonValid(schedule,p)))
-          for (let d=0; d<D; d++) cf.add(indexOf(d,p));
+      for (let p = 0; p < P; p++){
+        if (!rules.every(r => r.isPersonValid(schedule, p)))
+          for (let d = 0; d < D; d++) cf.add(indexOf(d, p));
       }
-      return { success:false, conflict:cf, jumpDepth:-1 };
+      return { success: false, conflict: cf, jumpDepth: -1 };
     }
 
     const [d, p] = varPos;
@@ -97,34 +116,42 @@ function forwardCheck(schedule, rules, day, person, trail){
 
     let XiConflict = new Set();
 
-    for (const duty of schedule.domain[d][p]){
+    const candidates = [...schedule.domain[d][p]]
+      .map(duty => ({ duty, prune: countPruned(d, p, duty) }))
+      .sort((a, b) => a.prune - b.prune);
+    
+    for (let duty of candidates){
+      duty = duty.duty;
       nodes++;
       const trail = [];
       schedule.setDuty(d, p, duty);
 
       let ok = forwardCheck(schedule, rules, d, p, trail);
-      if (ok && schedule.isRowFilled(p)) ok = rules.every(r => r.isPersonValid(schedule, p));
-      if (ok && schedule.isColumnFilled(d)) ok = rules.every(r => r.isDayValid(schedule, d));
-
+      if (ok && schedule.isDayFilled(d)) ok = rules.every(r => r.isDayValid(schedule, d));
+      if (ok && schedule.isPersonFilled(p)) ok = rules.every(r => r.isPersonValid(schedule, p));
       if (ok) {
         const res = dfs(depth + 1);
         if (res.success) return res;
-        if (res.jumpDepth !== -1 && res.jumpDepth < depth)
-           return res;
         for (const v of res.conflict) XiConflict.add(v);
       }
 
       schedule.unsetDuty(d, p);
       undo(trail);
-      if (!XiConflict.has(varIdx)) break;
     }
-    XiConflict.add(varIdx);
+    XiConflict.delete(varIdx);
 
     let jumpDepth = -1;
-    for (const idx of XiConflict) {
-      const lv = levelOf.indexOf(idx);
-      if (lv >= 0 && (jumpDepth === -1 || lv < jumpDepth))
-          jumpDepth = lv;
+    if (XiConflict.size > 0) {
+      let maxLevel = -1;
+      for (const idx of XiConflict) {
+        const lv = levelOf.indexOf(idx);
+        if (lv > maxLevel) {
+          maxLevel = lv;
+        }
+      }
+      jumpDepth = maxLevel;
+    } else {
+      jumpDepth = depth - 1;
     }
     return { success : false, conflict : XiConflict, jumpDepth };
   }
@@ -136,7 +163,8 @@ function forwardCheck(schedule, rules, day, person, trail){
 //-------------------------------------
 // 5. 데모 (node 실행 시)
 //-------------------------------------
-const peopleDemo = ["선규","민수","정민", "ㅁ", "ㅔ", "ㅇ"];
+const peopleDemo = ["선규", "민수", "정민", "신1", "신2", "신3", "신4", "신5"];
+//const peopleDemo = ["선규", "민수", "정민"];
 const schedDemo  = new Schedule(31, peopleDemo);
 
 const rulesDemo  = [
