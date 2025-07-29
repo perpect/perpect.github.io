@@ -16,7 +16,7 @@ function solve(schedule, rules){
   );
   
   const colNeighbors  = Array.from({ length: P }, (_,p)=>
-    Array.from({ length: D }, (_,d)=> [...Array(D).keys()].filter(i => i!==d).map(i => [i, p]))
+    Array.from({ length: D }, (_,d)=> [...Array(D).keys()].filter(i => i !== d).map(i => [i, p]))
   );
 
   function neighborsOf(day, person){
@@ -163,7 +163,7 @@ function forwardCheck(schedule, rules, day, person, trail){
 //-------------------------------------
 // 5. 데모 (node 실행 시)
 //-------------------------------------
-const peopleDemo = ["선규", "민수", "정민", "신1", "신2", "신3", "신4", "신5"];
+const peopleDemo = ["선규", "민수", "정민", "신1", "신2", "신3", "신4"];
 //const peopleDemo = ["선규", "민수", "정민"];
 const schedDemo  = new Schedule(31, peopleDemo);
 
