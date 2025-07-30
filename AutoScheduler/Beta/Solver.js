@@ -19,10 +19,12 @@ function solve(schedule, rules){
     Array.from({ length: D }, (_,d)=> [...Array(D).keys()].filter(i => i !== d).map(i => [i, p]))
   );
 
-  function neighborsOf(day, person){
-    return rowNeighbors[day][person].concat(colNeighbors[person][day]);
-  }
-
+  const neighbors = Array.from({ length: D }, (_,d)=>
+    Array.from({ length: P }, (_,p)=>
+      [...rowNeighbors[d][p], ...colNeighbors[p][d]] 
+    )
+  );
+  
   function removeCandidate(day, person, duty, trail){
     const dom = schedule.domain[day][person];
     if (dom.has(duty)){
@@ -42,11 +44,13 @@ function forwardCheck(schedule, rules, day, person, trail){
   for (const rule of rules){
     if (!rule.isPartialValid(schedule, day, person)) return false;
   }
-  for (const [d2, p2] of neighborsOf(day, person)){
+  for (const [d2, p2] of neighbors[day][person]){
     if (schedule.duty(d2, p2)) continue;
     for (const duty of [...schedule.domain[d2][p2]]){
       schedule.setDuty(d2, p2, duty);
-      const ok = rules.every(r => r.isPartialValid(schedule, d2, p2));
+      let ok = rules.every(r => r.isPartialValid(schedule, d2, p2));
+      if (ok && schedule.isDayFilled(d2)) ok = rules.every(r => r.isDayValid(schedule, d2));
+      if (ok && schedule.isPersonFilled(p2)) ok = rules.every(r => r.isPersonValid(schedule, p2));
       schedule.unsetDuty(d2, p2);
       if (!ok) removeCandidate(d2, p2, duty, trail);
     }
@@ -55,7 +59,8 @@ function forwardCheck(schedule, rules, day, person, trail){
   return true;
 }
 
-
+  // MCV - degree heuristic
+  // 규칙을 고려해보았을 때 이미 이것은 degree hueristic에 해당함.
   function chooseVar(){
     let best = null, bestSize = Infinity;
     for (let d = 0; d < D; d++){
@@ -63,6 +68,7 @@ function forwardCheck(schedule, rules, day, person, trail){
       for (let p = 0; p < P; p++){
         if (schedule.duty(d, p)) continue;
         const size = schedule.getDomain(d, p).size;
+        if (size == 0) continue;
         if (size < bestSize){
           best = [d, p];
           bestSize = size;
@@ -73,39 +79,20 @@ function forwardCheck(schedule, rules, day, person, trail){
     return best;
   }
 
-  function countPruned(d, p, duty){
-    let pruned = 0;
-    schedule.setDuty(d, p, duty);
-
-    for (const [d2, p2] of neighborsOf(d, p)){
-      if (schedule.duty(d2, p2)) continue;
-      for (const cand of schedule.domain[d2][p2]){
-        schedule.setDuty(d2, p2, cand);
-        const ok = rules.every(r => r.isPartialValid(schedule, d2, p2));
-        schedule.unsetDuty(d2, p2);
-        if (!ok) pruned++;
-      }
-    }
-
-    schedule.unsetDuty(d, p);
-    return pruned;
-  }
-
-
   function dfs(depth){
     const varPos = chooseVar();
     if (!varPos){
       const okFinal = rules.every(r=>r.isFinalValid(schedule));
       if (okFinal) return { success:true, conflict:new Set(), jumpDepth:-1 };
-      const cf = new Set();
+      /*const cf = new Set();
       for (let d = 0; d < D; d++){
-        if (!rules.every(r => r.isDayValid(schedule,d)))
+        if (!rules.every(r => r.isDayValid(schedule, d)))
           for (let p = 0; p < P; p++) cf.add(indexOf(d, p));
       }
       for (let p = 0; p < P; p++){
         if (!rules.every(r => r.isPersonValid(schedule, p)))
           for (let d = 0; d < D; d++) cf.add(indexOf(d, p));
-      }
+      }*/
       return { success: false, conflict: cf, jumpDepth: -1 };
     }
 
@@ -115,13 +102,8 @@ function forwardCheck(schedule, rules, day, person, trail){
     parentOf[depth] = depth - 1;
 
     let XiConflict = new Set();
-
-    const candidates = [...schedule.domain[d][p]]
-      .map(duty => ({ duty, prune: countPruned(d, p, duty) }))
-      .sort((a, b) => a.prune - b.prune);
     
-    for (let duty of candidates){
-      duty = duty.duty;
+    for (let duty of schedule.domain[d][p]){
       nodes++;
       const trail = [];
       schedule.setDuty(d, p, duty);
@@ -129,6 +111,7 @@ function forwardCheck(schedule, rules, day, person, trail){
       let ok = forwardCheck(schedule, rules, d, p, trail);
       if (ok && schedule.isDayFilled(d)) ok = rules.every(r => r.isDayValid(schedule, d));
       if (ok && schedule.isPersonFilled(p)) ok = rules.every(r => r.isPersonValid(schedule, p));
+      //console.log(`Depth: ${depth} | Day: ${d+1} | Person: ${p+1} | Duty: ${duty} | DomainSize: ${schedule.getDomain(d, p).size} | OK: ${ok}`);
       if (ok) {
         const res = dfs(depth + 1);
         if (res.success) return res;
@@ -163,8 +146,9 @@ function forwardCheck(schedule, rules, day, person, trail){
 //-------------------------------------
 // 5. 데모 (node 실행 시)
 //-------------------------------------
-const peopleDemo = ["선규", "민수", "정민", "신1", "신2", "신3", "신4"];
-//const peopleDemo = ["선규", "민수", "정민"];
+//const peopleDemo = ["선규", "민수", "정민", "신1", "신2", "신3", "신4"];
+for (let i = 3; i <= 7; i++) {
+const peopleDemo = Array.from({ length: i }, (_, j) => `사람${j + 1}`);
 const schedDemo  = new Schedule(31, peopleDemo);
 
 const rulesDemo  = [
@@ -177,5 +161,6 @@ const rulesDemo  = [
 console.time("solve");
 const {solved,nodesVisited} = solve(schedDemo, rulesDemo);
 console.timeEnd("solve");
-console.log("Solved:", solved, " | Nodes:", nodesVisited);
-console.log(schedDemo.toString());
+console.log(`PeopleCount : ${i} | Solved: ${solved} | Nodes: ${nodesVisited}`);
+//console.log(schedDemo.toString());
+}
