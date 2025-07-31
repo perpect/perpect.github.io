@@ -79,6 +79,50 @@ function forwardCheck(schedule, rules, day, person, trail){
     return best;
   }
 
+  function AC3() {
+  const queue = [];
+
+  for (let d = 0; d < D; d++)
+    for (let p = 0; p < P; p++)
+      if (!schedule.duty(d,p))
+        for (const [d2,p2] of neighbors[d][p])
+          if (!schedule.duty(d2,p2))
+            queue.push([[d,p], [d2,p2]]);
+
+  while (queue.length) {
+    const [[di,pi], [dj,pj]] = queue.shift();
+    if (revise(di,pi, dj,pj)) {
+      if (schedule.domain[di][pi].size === 0) return false;
+      for (const [dk,pk] of neighbors[di][pi]) {
+        if (!schedule.duty(dk,pk) && !(dk===dj && pk===pj))
+          queue.push([[dk,pk], [di,pi]]);
+      }
+    }
+  }
+  return true;
+}
+function revise(di, pi, dj, pj) {
+  const domI = schedule.domain[di][pi];
+  const domJ = schedule.domain[dj][pj];
+
+  let removed = false;
+  for (const v of [...domI]) {
+    let supported = false;
+    for (const w of domJ) {
+      if (binaryConsistent(di,pi,v, dj,pj,w)) {
+        supported = true;
+        break;
+      }
+    }
+    if (!supported) {
+      domI.delete(v);
+      removed = true;
+    }
+  }
+  return removed;
+}
+
+
   function dfs(depth){
     const varPos = chooseVar();
     if (!varPos){
@@ -113,6 +157,7 @@ function forwardCheck(schedule, rules, day, person, trail){
       if (ok && schedule.isPersonFilled(p)) ok = rules.every(r => r.isPersonValid(schedule, p));
       //console.log(`Depth: ${depth} | Day: ${d+1} | Person: ${p+1} | Duty: ${duty} | DomainSize: ${schedule.getDomain(d, p).size} | OK: ${ok}`);
       if (ok) {
+        //AC3();
         const res = dfs(depth + 1);
         if (res.success) return res;
         for (const v of res.conflict) XiConflict.add(v);
@@ -147,7 +192,7 @@ function forwardCheck(schedule, rules, day, person, trail){
 // 5. 데모 (node 실행 시)
 //-------------------------------------
 //const peopleDemo = ["선규", "민수", "정민", "신1", "신2", "신3", "신4"];
-for (let i = 3; i <= 7; i++) {
+for (let i = 9; i <= 9; i++) {
 const peopleDemo = Array.from({ length: i }, (_, j) => `사람${j + 1}`);
 const schedDemo  = new Schedule(31, peopleDemo);
 
@@ -162,5 +207,5 @@ console.time("solve");
 const {solved,nodesVisited} = solve(schedDemo, rulesDemo);
 console.timeEnd("solve");
 console.log(`PeopleCount : ${i} | Solved: ${solved} | Nodes: ${nodesVisited}`);
-//console.log(schedDemo.toString());
+console.log(schedDemo.toString());
 }
