@@ -7,18 +7,13 @@ class Schedule {
     this.grid   = Array.from({ length: days }, () =>
       Array(people.length).fill(null)
     );
-
-    // 각 날과 사람에 대한 도메인 초기화
     this.domain = Array.from({length:days},()=>Array.from({length:people.length},()=>new Set(DUTIES)));
-
-    // 각 날의 근무 유형 카운트 및 시간 합계
     this.dayDutyCounts = Array.from({ length: days }, () =>
         Object.fromEntries(DUTIES.map(duty => [duty, 0]))
     );
     this.dayDutyHours = Array(days).fill(0);
     this.dayFillCount = Array(days).fill(0);
 
-    // 각 사람의 근무 유형 카운트 및 시간 합계
     this.personDutyCounts = Array.from({ length: people.length }, () =>
         Object.fromEntries(DUTIES.map(duty => [duty, 0]))
     );
@@ -41,7 +36,7 @@ class Schedule {
     this.domain[dayIdx][personIdx] = new Set([duty]);
   }
 
-  unsetDuty(dayIdx, personIdx) {
+  unsetDuty(dayIdx, personIdx, prevDomain = new Set(DUTIES)) {
     const duty = this.grid[dayIdx][personIdx];
     if (!duty) return;
     this.grid[dayIdx][personIdx] = null;
@@ -55,11 +50,10 @@ class Schedule {
     this.dayFillCount[dayIdx]--;
     this.personFillCount[personIdx]--;
 
-    this.domain[dayIdx][personIdx] = new Set(DUTIES);
+    this.domain[dayIdx][personIdx] = prevDomain;
   }
   
   duty(dayIdx, personIdx) { return this.grid[dayIdx][personIdx]; }
-  /* 행/열 채움 여부 */
   isPersonFilled(personIdx) { return this.personFillCount[personIdx] >= this.days; }
   isDayFilled(dayIdx) { return this.dayFillCount[dayIdx] >= this.people.length; }
 
