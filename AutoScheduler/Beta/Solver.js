@@ -1,24 +1,31 @@
 import { Schedule } from "./Schedule.js";
-import { NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule } from "./Rule.js";
+import { TestRule, NightAfterNightOffRule2, NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule } from "./Rule.js";
 
 function solve(schedule, rules){
   const D = schedule.days;
   const P = schedule.people.length;
   let nodes = 0;
-  const rowNeighbors  = Array.from({ length: D }, (_,d)=>
-    Array.from({ length: P }, (_,p)=> [...Array(P).keys()].filter(j => j !== p).map(j => [d, j]))
-  );
-  const colNeighbors  = Array.from({ length: P }, (_,p)=>
-    Array.from({ length: D }, (_,d)=> [...Array(D).keys()].filter(i => i !== d).map(i => [i, p]))
-  );
+  const trail = [];
 
-  const neighbors = Array.from({ length: D }, (_,d)=>
-    Array.from({ length: P }, (_,p)=>
-      [...rowNeighbors[d][p], ...colNeighbors[p][d]] 
-    )
-  );
-  
-  function removeCandidate(day, person, duty, trail){
+  function mark() { return trail.length;}
+  function rollback(level) {
+    while (trail.length > level) {
+      const [d, p, duty] = trail.pop();
+      schedule.domain[d][p].add(duty);
+    }
+  }
+  const neighbors = (d, p) => {
+    const result = [];
+    for (let i = 0; i < D; i++) {
+      if (i !== d) result.push([i, p]);
+    }
+    for (let j = 0; j < P; j++) {
+      if (j !== p) result.push([d, j]);
+    }
+    return result;
+  }
+
+  function removeCandidate(day, person, duty){
     const dom = schedule.domain[day][person];
     if (dom.has(duty)){
       dom.delete(duty);
@@ -26,25 +33,24 @@ function solve(schedule, rules){
     }
   }
 
-  function undo(trail){
-    while (trail.length > 0){
-      const [d, p, duty] = trail.pop();
-      schedule.domain[d][p].add(duty);
-    }
-  }
-
-  function forwardCheck(schedule, rules, day, person){
-    const trail = [];
+  function forwardCheck(day, person){
+    const snap = mark();
+    let prevDomain;
     for (const rule of rules){
       let ok = rule.isPartialValid(schedule, day, person);
       if (ok && schedule.isDayFilled(day)) ok = rule.isDayValid(schedule, day);
       if (ok && schedule.isPersonFilled(person)) ok = rule.isPersonValid(schedule, person);
-      if (!ok) return false;
+      if (!ok) {
+        rollback(snap);
+        return false;
+      }
     }
-    for (const [d, p] of neighbors[day][person]){
+    for (const [d, p] of neighbors(day, person)){
+      if (schedule.isDayFilled(d)) continue;
+      if (schedule.isPersonFilled(p)) continue;
       if (schedule.duty(d, p)) continue;
-      const prevDomain = schedule.getDomain(d, p);
-      for (const duty of prevDomain){
+      prevDomain = new Set(schedule.domain[d][p]);
+      for (const duty of [...schedule.domain[d][p]]){
         schedule.setDuty(d, p, duty);
         let ok = true;
         for (const rule of rules){
@@ -54,10 +60,10 @@ function solve(schedule, rules){
           if (!ok) break;
         }
         schedule.unsetDuty(d, p, prevDomain);
-        if (!ok) removeCandidate(d, p, duty, trail);
+        if (!ok) removeCandidate(d, p, duty);
       }
-      if (schedule.getDomain(d, p).size === 0) {
-        undo(trail);
+      if (schedule.domain[d][p].size === 0) {
+        rollback(snap);
         return false;
       }
     }
@@ -70,7 +76,7 @@ function solve(schedule, rules){
       if (schedule.isDayFilled(d)) continue;
       for (let p = 0; p < P; p++){
         if (schedule.duty(d, p)) continue;
-        const size = schedule.getDomain(d, p).size;
+        const size = schedule.domain[d][p].size;
         if (size == 0) continue;
         if (size < bestSize){
           best = [d, p];
@@ -86,16 +92,17 @@ function solve(schedule, rules){
     const varPos = chooseVar();
     if (!varPos) return true;
     const [d, p] = varPos;
-    for (let duty of schedule.domain[d][p]){
+    const prevDomain = new Set(schedule.domain[d][p]);
+    for (let duty of [...schedule.domain[d][p]]){
       nodes++;
-      const prevDomain = schedule.getDomain(d, p);
+      const snap = mark();
       schedule.setDuty(d, p, duty);
-      let ok = forwardCheck(schedule, rules, d, p);
-      if (ok) {
+      if (forwardCheck(d, p)) {
         const res = dfs(depth + 1);
         if (res) return true;
       }
       schedule.unsetDuty(d, p, prevDomain);
+      rollback(snap);
     }
     return false;
   }
@@ -103,7 +110,7 @@ function solve(schedule, rules){
   return { solved : res, nodesVisited: nodes };
 }
 
-for (let i = 3; i <= 7; i++) {
+for (let i = 3; i <= 8; i++) {
 const peopleDemo = Array.from({ length: i }, (_, j) => `사람${j + 1}`);
 const schedDemo  = new Schedule(31, peopleDemo);
 
@@ -111,7 +118,8 @@ const rulesDemo  = [
   new NightAfterNightOffRule(),
   new EssentialDuty(),
   new NoConsecutiveOffRule(),
-  new MinimalDutiesRule()
+  new MinimalDutiesRule(),
+  new NightAfterNightOffRule2()
 ];
 [
   new MinimalDutiesRule()
@@ -121,6 +129,6 @@ const rulesDemo  = [
 console.time("solve");
 const {solved,nodesVisited} = solve(schedDemo, rulesDemo);
 console.timeEnd("solve");
-console.log(`PeopleCount : ${i} | Solved: ${solved} | Nodes: ${nodesVisited}`);
+console.log(`PeopleCount : ${i} | Solved: ${solved} | Nodes: ${nodesVisited - i * 31}`);
 console.log(schedDemo.toString());
 }

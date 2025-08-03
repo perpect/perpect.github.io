@@ -6,7 +6,6 @@ class Rule {
   isFinalValid (_schedule){ return true; }
 }
 
-// Duty 상수: Duty.NIGHT, Duty.OFF, Duty.DAY
 class NightAfterNightOffRule extends Rule {
   isPartialValid(schedule, day, person) {
     if (day == 0) return true;
@@ -15,6 +14,16 @@ class NightAfterNightOffRule extends Rule {
     return !(prev === Duty.NIGHT && cur !== Duty.OFF);    
   }
 }
+
+class NightAfterNightOffRule2 extends Rule {
+  isPartialValid(schedule, day, person) {
+    if (day == schedule.days - 1) return true;
+    const cur = schedule.duty(day, person);
+    const next = schedule.duty(day + 1, person);
+    return !(cur === Duty.NIGHT && next !== null && next !== Duty.OFF);    
+  }
+}
+
 
 // 하루에 NIGHT 1명만 허용
 class EssentialDuty extends Rule {
@@ -64,4 +73,11 @@ class MinimalDutiesRule extends Rule {
   }
 }
 
-export { Rule, NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule };
+class TestRule extends Rule {
+  isPersonValid(schedule, personIdx){
+    const nightCnt = schedule.personDutyCounts[personIdx][Duty.NIGHT];
+    return nightCnt >= 1;
+  } 
+}
+
+export { TestRule, NightAfterNightOffRule2, NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule };
