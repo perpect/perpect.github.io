@@ -149,6 +149,7 @@ function solve(schedule, rules){
 }
 
 for (let i = 7; i <= 7; i++) {
+  if (prompt()=="") continue;
 const peopleDemo = Array.from({ length: i }, (_, j) => `사람${j + 1}`);
 const schedDemo  = new Schedule(31, peopleDemo);
 

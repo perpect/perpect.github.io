@@ -1,125 +1,284 @@
-<!-- shift_scheduler.html : Pure jQuery implementation -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>교대근무 일정관리</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>교대근무 일정 관리 체계</title>
   <link rel="stylesheet" href="style.css">
+  <script src="./Solver.js" type="module"></script>
+</head>
 </head>
 <body>
-  <header>교대근무 일정관리</header>
-  <nav>
-    <button data-tab="setup" class="active">1️⃣ 설정</button>
-    <button data-tab="generate">2️⃣ 생성</button>
-    <button data-tab="results">3️⃣ 결과</button>
-  </nav>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar neu-card" id="sidebar">
+      <div class="top">
+        <strong class="label" style="padding-left:4px">Menu</strong>
+        <button id="toggleSidebar" title="사이드바 접기" style="width:40px;height:40px; border:none; cursor:pointer; background: var(--bg);">
+          <span class="icon hamburger" style="margin:9px"></span>
+        </button>
+      </div>
+      <div class="nav">
+        <button class="nav-item neu-card active" data-page="dashboard">
+          <span class="icon hamburger" aria-hidden="true"></span>
+          <span class="label">Dashboard</span>
+        </button>
+        <button class="nav-item neu-card" data-page="new">
+          <span class="icon" style="position:relative"><span style="position:absolute;left:9px;top:2px;width:2px;height:18px;background:var(--text)"></span><span style="position:absolute;left:1px;top:10px;width:18px;height:2px;background:var(--text)"></span></span>
+          <span class="label">New Schedule</span>
+        </button>
+        <button class="nav-item neu-card" data-page="edit">
+          <span class="icon hamburger" aria-hidden="true"></span>
+          <span class="label">Edit Schedule</span>
+        </button>
+        <button class="nav-item neu-card" data-page="stats">
+          <span class="icon" style="position:relative"><span style="position:absolute;left:3px;top:16px;width:16px;height:2px;background:var(--text)"></span><span style="position:absolute;left:3px;top:10px;width:10px;height:2px;background:var(--text)"></span><span style="position:absolute;left:3px;top:4px;width:14px;height:2px;background:var(--text)"></span></span>
+          <span class="label">Statistics</span>
+        </button>
+      </div>
+    </aside>
 
-  <!-- 1. 설정 탭 -->
-  <section id="setup" class="tab active">
-    <h2>규칙 & 기본 정보</h2>
+    <!-- Main -->
+    <main id="main">
+      <!-- Dashboard Page -->
+      <section class="page" id="page-dashboard">
+        <div class="grid cols-2">
+          <div class="card neu-card hover">
+            <div class="flex space-between">
+              <h2>2025년 8월</h2>
+              <button class="neu-inset" style="padding:6px 10px;border:none">달력 열기</button>
+            </div>
+            <div class="calendar mt-12">
+              <!-- 14 days preview -->
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+              <div class="day neu-inset"></div>
+            </div>
+          </div>
 
-    <label>인원 목록 (줄바꿈으로 구분)</label>
-    <textarea id="peopleInput" placeholder="사람1\n사람2\n..."></textarea>
+          <div class="card neu-card hover">
+            <div class="flex gap-12 mt-8" style="margin-bottom:16px">
+              <button class="neu-inset" style="padding:6px 10px;border:none">근무시간</button>
+              <button class="neu-card" style="padding:6px 10px;border:none">주간</button>
+              <button class="neu-card" style="padding:6px 10px;border:none">야간</button>
+              <button class="neu-card" style="padding:6px 10px;border:none">비번</button>
+              <span class="muted" style="margin-left:auto">통계 보기</span>
+            </div>
+            <div class="stats">
+              <div class="stat neu-inset">
+                <div class="muted" style="font-size:12px">총 근무시간</div>
+                <div style="font-weight:600; font-size:22px">160h</div>
+              </div>
+              <div class="stat neu-inset">
+                <div class="muted" style="font-size:12px">야간 횟수</div>
+                <div style="font-weight:600; font-size:22px">6</div>
+              </div>
+              <div class="stat neu-inset">
+                <div class="muted" style="font-size:12px">비번 비율</div>
+                <div style="font-weight:600; font-size:22px">22%</div>
+              </div>
+            </div>
+          </div>
 
-    <h3>규칙 선택</h3>
-    <div id="ruleList"></div>
+          <div class="card neu-card hover">
+            <h2>근무표 프리뷰</h2>
+            <div id="dash-preview" class="calendar mt-12"></div>
+          </div>
 
-    <h3>최적화 기준</h3>
-    <select id="optimSelect">
-      <option value="MIN_MAX_GAP">최대-최소 근무시간 차이 최소화</option>
-      <option value="BALANCE_NIGHT">야간 근무 균등 분배</option>
-    </select>
+          <div class="card neu-card hover">
+            <div class="flex space-between">
+              <h2>근무자</h2>
+              <button class="neu-card" id="editMembersBtn" style="padding:6px 10px;border:none">정보 수정</button>
+            </div>
+            <div id="dash-members" class="mt-12"></div>
+            <div class="flex" style="justify-content:flex-end; margin-top:16px">
+              <button class="neu-btn" id="addMemberBtn" style="background:var(--chip)">Add Member</button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <h3>필수 야근 날짜 (쉼표 구분)</h3>
-    <input type="text" id="requiredNightsInput" placeholder="예: 5,12,19" />
-  </section>
+      <!-- New Schedule Page -->
+      <section class="page" id="page-new" style="display:none">
+        <div class="grid cols-2">
+          <!-- Options panel -->
+          <div class="card neu-card">
+            <h2>옵션</h2>
 
-  <!-- 2. 생성 탭 -->
-  <section id="generate" class="tab">
-    <h2>요약 & 생성</h2>
-    <div id="summary"></div>
-    <button id="generateBtn">🔄 생성하기</button>
-    <div id="genStatus" style="margin-top:8px;"></div>
-  </section>
+            <div class="mt-16">
+              <div class="muted" style="font-size:14px;margin-bottom:6px">근무 날짜 범위</div>
+              <div class="grid" style="grid-template-columns:1fr 1fr; gap:12px">
+                <div class="neu-inset"><input type="date" id="from" class="w-100" value="2025-08-01"/></div>
+                <div class="neu-inset"><input type="date" id="to" class="w-100" value="2025-08-31"/></div>
+              </div>
+            </div>
 
-  <!-- 3. 결과 탭 -->
-  <section id="results" class="tab">
-    <h2>결과</h2>
-    <div id="scheduleTable"></div>
-    <div id="statsBox" class="stats"></div>
-  </section>
+            <div class="mt-16">
+              <div class="muted" style="font-size:14px;margin-bottom:6px">근무 유형</div>
+              <div class="flex gap-12">
+                <div class="chip neu-card" data-type="DAY"><span class="dot" style="background:#4E9F3D"></span>DAY</div>
+                <div class="chip neu-card" data-type="NIGHT"><span class="dot" style="background:#22218C"></span>NIGHT</div>
+                <div class="chip neu-card" data-type="OFF"><span class="dot" style="background:#B0B0B0"></span>OFF</div>
+              </div>
+            </div>
 
-  <!-- 라이브러리 -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <!-- 비즈니스 로직 -->
-  <script type="module">
-    import { DUTIES } from "./Duty.js";
-    import { Schedule } from "./Schedule.js";
-    import { solve } from "./Solver.js";
-    import { NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule } from "./Rule.js";
+            <div class="mt-16">
+              <div class="flex space-between" style="margin-bottom:6px">
+                <div class="muted" style="font-size:14px">근무자 (<span id="member-count">0</span>)</div>
+                <button class="neu-card" id="btnAddMember" style="border:none;padding:6px 10px">+ 추가</button>
+              </div>
+              <div id="member-list" class="scroll"></div>
+            </div>
 
+            <div class="mt-16">
+              <button id="btnGenerate" class="neu-btn w-100" style="background:var(--chip)">Generate</button>
+            </div>
+          </div>
+
+          <!-- Grid canvas -->
+          <div class="card neu-card">
+            <div class="flex space-between">
+              <h2>새 근무표 생성</h2>
+              <button class="neu-btn" id="btnSave" style="background:#fff8">저장</button>
+            </div>
+            <div class="mt-12" style="overflow:auto">
+              <table id="new-grid"></table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Edit / Stats Placeholders -->
+      <section class="page" id="page-edit" style="display:none">
+        <div class="card neu-card"><h2>Edit Schedule (준비 중)</h2></div>
+      </section>
+      <section class="page" id="page-stats" style="display:none">
+        <div class="card neu-card"><h2>Statistics (준비 중)</h2></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnN2mHApgwG5qbi3F3bPp6bLh4jZJYEdl+4rTjp8w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
     $(function(){
-      /* ------------------------------ 탭 전환 ------------------------------ */
-      const $tabBtns = $("nav button");
-      $tabBtns.on("click", function(){
-        const tab = $(this).data("tab");
-        $tabBtns.removeClass("active");
-        $(this).addClass("active");
-        $(".tab").removeClass("active");
-        $("#"+tab).addClass("active");
-      });
-
-      /* ------------------------------ 규칙 체크박스 ------------------------------ */
-      const ruleMap = {
-        NightAfterNightOffRule: NightAfterNightOffRule,
-        EssentialDuty:         EssentialDuty,
-        NoConsecutiveOffRule:  NoConsecutiveOffRule,
-        MinimalDutiesRule:     MinimalDutiesRule
+      // ------- State -------
+      var state = {
+        members: ["상민","정민","누구"],
+        days: 14,
+        types: { DAY:true, NIGHT:true, OFF:true }
       };
-      const $ruleList = $("#ruleList");
-      Object.keys(ruleMap).forEach(key=>{
-        $ruleList.append(`<label><input type="checkbox" class="ruleCheck" value="${key}" checked> ${key}</label>`);
+
+      // ------- Sidebar toggle & nav -------
+      $('#toggleSidebar').on('click', function(){ $('#sidebar').toggleClass('collapsed'); });
+      $('.nav-item').on('click', function(){
+        var page = $(this).data('page');
+        $('.nav-item').removeClass('active'); $(this).addClass('active');
+        $('.page').hide(); $('#page-'+page).show();
+        if(page==='dashboard') refreshDashboard();
+        if(page==='new') { buildMemberList(); buildNewGrid(); }
       });
 
-      /* ------------------------------ 생성 버튼 ------------------------------ */
-      $("#generateBtn").on("click", async function(){
-        const people = $("#peopleInput").val().split(/\n+/).filter(Boolean);
-        const optim  = $("#optimSelect").val();
-        const requiredNights = $("#requiredNightsInput").val().split(/,\s*/).map(v=>parseInt(v,10)-1).filter(n=>!isNaN(n));
-        const rules = $(".ruleCheck:checked").map((_,el)=> new ruleMap[el.value]()).get();
-
-        $("#summary").html(`<p>인원 ${people.length}명 · 규칙 ${rules.length}개 · 기준 ${optim}</p>`);
-
-        $("#genStatus").text("생성 중...");
-        await new Promise(r=>setTimeout(r,50)); // UI refresh
-
-        const sched = new Schedule(31, people);
-        const { solved, bestSched } = solve(sched, rules);
-        if (!solved){ $("#genStatus").text("실패: 해를 찾지 못했습니다."); return; }
-
-        $("#genStatus").text("완료!");
-        renderResults(bestSched);
-        $tabBtns.filter('[data-tab="results"]').trigger("click");
-      });
-
-      /* ------------------------------ 결과 렌더 ------------------------------ */
-      function renderResults(sched){
-        // 표
-        const header = `<tr><th>Day</th>${sched.people.map(p=>`<th>${p}</th>`).join("")}</tr>`;
-        const rows = sched.grid.map((row,dIdx)=>{
-          const cells = row.map(cell=>`<td>${cell?cell.label:'-'}</td>`).join('');
-          return `<tr><td>${dIdx+1}</td>${cells}</tr>`;
-        }).join('');
-        $("#scheduleTable").html(`<table>${header}${rows}</table>`);
-
-        // 통계
-        const hours = sched.personDutyHours;
-        $("#statsBox").html(`
-          <div class="stat">최대 ${Math.max(...hours)}h</div>
-          <div class="stat">최소 ${Math.min(...hours)}h</div>
-          <div class="stat">격차 ${Math.max(...hours)-Math.min(...hours)}h</div>
-        `);
+      // ------- Dashboard preview -------
+      function refreshDashboard(){
+        var $p = $('#dash-preview').empty();
+        for(var i=0;i<28;i++){ $p.append('<div class="day neu-inset"></div>'); }
+        var $m = $('#dash-members').empty();
+        state.members.forEach(function(n){ $m.append('<div class="member neu-inset">'+n+'</div>'); });
       }
+      refreshDashboard();
+
+      // ------- New Schedule: duty chips toggle -------
+      $('.chip').on('click', function(){
+        var t = $(this).data('type');
+        state.types[t] = !state.types[t];
+        $(this).toggleClass('neu-inset');
+      });
+
+      // ------- Member list controls -------
+      function buildMemberList(){
+        $('#member-count').text(state.members.length);
+        var $list = $('#member-list').empty();
+        state.members.forEach(function(n, idx){
+          var $row = $('<div class="member neu-inset flex space-between" style="margin:6px 0"></div>');
+          $row.append('<span>'+n+'</span>');
+          var $del = $('<button class="neu-card" style="border:none;padding:6px 10px">삭제</button>');
+          $del.on('click', function(){ state.members.splice(idx,1); buildMemberList(); buildNewGrid(); });
+          $row.append($del);
+          $list.append($row);
+        });
+      }
+      buildMemberList();
+
+      $('#btnAddMember').on('click', function(){
+        var name = prompt('새 근무자 이름');
+        if(name){ state.members.push(name); buildMemberList(); buildNewGrid(); }
+      });
+
+      // ------- New grid builder -------
+      function allowedTypes(){
+        return Object.keys(state.types).filter(function(k){ return state.types[k]; });
+      }
+      function nextType(curr){
+        var arr = ['','DAY','NIGHT','OFF'].filter(function(t){ return t==='' || state.types[t]; });
+        var i = arr.indexOf(curr); return arr[(i+1)%arr.length];
+      }
+      function buildNewGrid(){
+        var $tbl = $('#new-grid').empty();
+        // header
+        var $thead = $('<thead><tr><th>날짜</th></tr></thead>');
+        state.members.forEach(function(n){ $thead.find('tr').append('<th>'+n+'</th>'); });
+        $tbl.append($thead);
+        var $tbody = $('<tbody></tbody>');
+        for(var d=0; d<state.days; d++){
+          var $tr = $('<tr></tr>');
+          $tr.append('<td class="muted">8월 '+(d+1)+'일</td>');
+          state.members.forEach(function(_, p){
+            var $td = $('<td></td>');
+            var $cell = $('<div class="cell neu-inset duty-empty"></div>');
+            $cell.data('type','');
+            $cell.on('click', function(){
+              var t = $(this).data('type');
+              var nt = nextType(t);
+              $(this).data('type', nt).removeClass('duty-DAY duty-NIGHT duty-OFF');
+              if(nt==='') $(this).addClass('duty-empty'); else $(this).removeClass('duty-empty').addClass('duty-'+nt);
+            });
+            $td.append($cell); $tr.append($td);
+          });
+          $tbody.append($tr);
+        }
+        $tbl.append($tbody);
+      }
+      buildNewGrid();
+
+      // ------- Generate (random fill respecting enabled types) -------
+      $('#btnGenerate').on('click', function(){
+        var types = allowedTypes(); if(!types.length){ alert('활성화된 근무 유형이 없습니다.'); return; }
+        $('#new-grid .cell').each(function(){
+          var pick = Math.random() < 0.2 ? '' : types[Math.floor(Math.random()*types.length)];
+          $(this).data('type', pick).removeClass('duty-DAY duty-NIGHT duty-OFF');
+          if(pick==='') $(this).addClass('duty-empty'); else $(this).removeClass('duty-empty').addClass('duty-'+pick);
+        });
+      });
+
+      $('#btnSave').on('click', function(){
+        alert('저장(데모): 현재 화면 상태만 클라이언트에 유지됩니다.');
+      });
+
+      // Dashboard buttons
+      $('#addMemberBtn').on('click', function(){ state.members.push('신규'+(state.members.length+1)); refreshDashboard(); });
+      $('#editMembersBtn').on('click', function(){ $('.nav-item[data-page="new"]').click(); });
     });
   </script>
 </body>
