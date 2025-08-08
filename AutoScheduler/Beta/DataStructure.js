@@ -29,3 +29,36 @@ class MinHeap {
     }
   }
 }
+
+class BinarySet {
+  constructor(size) {
+    this.size = size;      // 최대 비트 수 (0 ~ size-1)
+    this.bits = 0n;        // 비트마스크
+  }
+
+  #mask(idx) {
+    if (idx < 0 || idx >= this.size) throw RangeError("idx out of range");
+    return 1n << BigInt(idx);
+  }
+
+  add(idx)    { this.bits |=  this.#mask(idx); }
+  delete(idx) { this.bits &= ~this.#mask(idx); }
+  has(idx)    { return (this.bits & this.#mask(idx)) !== 0n; }
+  clear()     { this.bits = 0n; }
+
+  get count() {
+    // Hamming weight(popcount) for BigInt
+    let n = this.bits, c = 0;
+    while (n) { c += Number(n & 1n); n >>= 1n; }
+    return c;
+  }
+
+  *values() {
+    for (let i = 0; i < this.size; i++)
+      if (this.has(i)) yield i;
+  }
+
+  toString() {
+    return [...this.values()].join(",");
+  }
+}

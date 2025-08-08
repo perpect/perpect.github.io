@@ -8,22 +8,21 @@ class Rule {
 
 class NightAfterNightOffRule extends Rule {
   isPartialValid(schedule, day, person) {
-    if (day == 0) return true;
-    const cur = schedule.duty(day, person);
-    const prev = schedule.duty(day - 1, person);
-    return !(prev === Duty.NIGHT && cur !== Duty.OFF);    
+    let stop = true;
+    if (day > 0){
+      const cur = schedule.duty(day, person);
+      const prev = schedule.duty(day - 1, person);
+      if (prev === Duty.NIGHT && cur !== Duty.OFF) return false;
+    }
+    else return true;
+    if (day < schedule.days - 1) {
+      const cur = schedule.duty(day, person);
+      const next = schedule.duty(day + 1, person);
+      return !(cur === Duty.NIGHT && next !== null && next !== Duty.OFF);  
+    }
+    else return true;
   }
 }
-
-class NightAfterNightOffRule2 extends Rule {
-  isPartialValid(schedule, day, person) {
-    if (day == schedule.days - 1) return true;
-    const cur = schedule.duty(day, person);
-    const next = schedule.duty(day + 1, person);
-    return !(cur === Duty.NIGHT && next !== null && next !== Duty.OFF);    
-  }
-}
-
 
 // 하루에 NIGHT 1명만 허용
 class EssentialDuty extends Rule {
@@ -80,4 +79,4 @@ class TestRule extends Rule {
   } 
 }
 
-export { TestRule, NightAfterNightOffRule2, NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule };
+export { TestRule, NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule };

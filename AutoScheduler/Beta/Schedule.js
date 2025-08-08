@@ -52,7 +52,8 @@ class Schedule {
 
     this.domain[dayIdx][personIdx] = prevDomain;
   }
-  
+
+  snapshot(){ return new ScheduleSnapShot(this); }
   duty(dayIdx, personIdx) { return this.grid[dayIdx][personIdx]; }
   isPersonFilled(personIdx) { return this.personFillCount[personIdx] >= this.days; }
   isDayFilled(dayIdx) { return this.dayFillCount[dayIdx] >= this.people.length; }
@@ -72,4 +73,28 @@ class Schedule {
   }
 }
 
-export { Schedule };
+class ScheduleSnapShot {
+  constructor(s){
+    this.days = s.days;
+    this.people = s.people;
+    this.grid = s.grid.map(i => [...i]);
+    this.domain = [];
+    for (let i = 0; i < s.domain.length; i++) {
+      this.domain.push([]);
+      for (let j = 0; j < s.domain[i].length; j++){
+        this.domain[i].push(new Set(s.domain[i][j]));
+      }
+    }
+  }
+
+  toString(){
+    const header = [" ", ...this.people].join("\t");
+    const rows   = this.grid.map((row, d) => [
+      `D${d+1}`,
+      ...row.map(cell => cell ? cell.toString() : "-")
+    ].join("\t"));
+    return [header, ...rows].join("\n");
+  }
+}
+
+export { Schedule, ScheduleSnapShot };

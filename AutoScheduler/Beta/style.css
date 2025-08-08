@@ -1,0 +1,13 @@
+body{font-family:sans-serif;margin:0}
+header{background:#1e293b;color:#fff;padding:12px 20px;font-size:20px}
+nav{display:flex;gap:8px;background:#f1f5f9;padding:8px 12px}
+nav button{padding:8px 14px;border:none;background:#cbd5e1;border-radius:6px;cursor:pointer}
+nav button.active{background:#64748b;color:#fff}
+.tab{display:none;padding:20px}
+.tab.active{display:block}
+textarea{width:100%;min-height:80px}
+table{border-collapse:collapse;width:100%;margin-top:8px}
+th,td{border:1px solid #cbd5e1;padding:4px;text-align:center;font-size:14px}
+.stats{display:flex;gap:16px;margin-top:16px}
+.stat{flex:1;text-align:center;border:1px solid #cbd5e1;padding:8px;border-radius:6px}
+label{display:block;margin:6px 0}

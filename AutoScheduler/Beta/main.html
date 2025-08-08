@@ -1,12 +1,126 @@
+<!-- shift_scheduler.html : Pure jQuery implementation -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPIL Interpreter</title>
+  <meta charset="UTF-8" />
+  <title>교대근무 일정관리</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h2>SPIL (Scheduler Policy Instruction Language) Interpreter</h2>
-    <script type="module" src="./Solver.js"></script>
+  <header>교대근무 일정관리</header>
+  <nav>
+    <button data-tab="setup" class="active">1️⃣ 설정</button>
+    <button data-tab="generate">2️⃣ 생성</button>
+    <button data-tab="results">3️⃣ 결과</button>
+  </nav>
+
+  <!-- 1. 설정 탭 -->
+  <section id="setup" class="tab active">
+    <h2>규칙 & 기본 정보</h2>
+
+    <label>인원 목록 (줄바꿈으로 구분)</label>
+    <textarea id="peopleInput" placeholder="사람1\n사람2\n..."></textarea>
+
+    <h3>규칙 선택</h3>
+    <div id="ruleList"></div>
+
+    <h3>최적화 기준</h3>
+    <select id="optimSelect">
+      <option value="MIN_MAX_GAP">최대-최소 근무시간 차이 최소화</option>
+      <option value="BALANCE_NIGHT">야간 근무 균등 분배</option>
+    </select>
+
+    <h3>필수 야근 날짜 (쉼표 구분)</h3>
+    <input type="text" id="requiredNightsInput" placeholder="예: 5,12,19" />
+  </section>
+
+  <!-- 2. 생성 탭 -->
+  <section id="generate" class="tab">
+    <h2>요약 & 생성</h2>
+    <div id="summary"></div>
+    <button id="generateBtn">🔄 생성하기</button>
+    <div id="genStatus" style="margin-top:8px;"></div>
+  </section>
+
+  <!-- 3. 결과 탭 -->
+  <section id="results" class="tab">
+    <h2>결과</h2>
+    <div id="scheduleTable"></div>
+    <div id="statsBox" class="stats"></div>
+  </section>
+
+  <!-- 라이브러리 -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- 비즈니스 로직 -->
+  <script type="module">
+    import { DUTIES } from "./Duty.js";
+    import { Schedule } from "./Schedule.js";
+    import { solve } from "./Solver.js";
+    import { NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule } from "./Rule.js";
+
+    $(function(){
+      /* ------------------------------ 탭 전환 ------------------------------ */
+      const $tabBtns = $("nav button");
+      $tabBtns.on("click", function(){
+        const tab = $(this).data("tab");
+        $tabBtns.removeClass("active");
+        $(this).addClass("active");
+        $(".tab").removeClass("active");
+        $("#"+tab).addClass("active");
+      });
+
+      /* ------------------------------ 규칙 체크박스 ------------------------------ */
+      const ruleMap = {
+        NightAfterNightOffRule: NightAfterNightOffRule,
+        EssentialDuty:         EssentialDuty,
+        NoConsecutiveOffRule:  NoConsecutiveOffRule,
+        MinimalDutiesRule:     MinimalDutiesRule
+      };
+      const $ruleList = $("#ruleList");
+      Object.keys(ruleMap).forEach(key=>{
+        $ruleList.append(`<label><input type="checkbox" class="ruleCheck" value="${key}" checked> ${key}</label>`);
+      });
+
+      /* ------------------------------ 생성 버튼 ------------------------------ */
+      $("#generateBtn").on("click", async function(){
+        const people = $("#peopleInput").val().split(/\n+/).filter(Boolean);
+        const optim  = $("#optimSelect").val();
+        const requiredNights = $("#requiredNightsInput").val().split(/,\s*/).map(v=>parseInt(v,10)-1).filter(n=>!isNaN(n));
+        const rules = $(".ruleCheck:checked").map((_,el)=> new ruleMap[el.value]()).get();
+
+        $("#summary").html(`<p>인원 ${people.length}명 · 규칙 ${rules.length}개 · 기준 ${optim}</p>`);
+
+        $("#genStatus").text("생성 중...");
+        await new Promise(r=>setTimeout(r,50)); // UI refresh
+
+        const sched = new Schedule(31, people);
+        const { solved, bestSched } = solve(sched, rules);
+        if (!solved){ $("#genStatus").text("실패: 해를 찾지 못했습니다."); return; }
+
+        $("#genStatus").text("완료!");
+        renderResults(bestSched);
+        $tabBtns.filter('[data-tab="results"]').trigger("click");
+      });
+
+      /* ------------------------------ 결과 렌더 ------------------------------ */
+      function renderResults(sched){
+        // 표
+        const header = `<tr><th>Day</th>${sched.people.map(p=>`<th>${p}</th>`).join("")}</tr>`;
+        const rows = sched.grid.map((row,dIdx)=>{
+          const cells = row.map(cell=>`<td>${cell?cell.label:'-'}</td>`).join('');
+          return `<tr><td>${dIdx+1}</td>${cells}</tr>`;
+        }).join('');
+        $("#scheduleTable").html(`<table>${header}${rows}</table>`);
+
+        // 통계
+        const hours = sched.personDutyHours;
+        $("#statsBox").html(`
+          <div class="stat">최대 ${Math.max(...hours)}h</div>
+          <div class="stat">최소 ${Math.min(...hours)}h</div>
+          <div class="stat">격차 ${Math.max(...hours)-Math.min(...hours)}h</div>
+        `);
+      }
+    });
+  </script>
 </body>
 </html>

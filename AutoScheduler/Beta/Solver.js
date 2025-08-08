@@ -1,10 +1,13 @@
 import { Schedule } from "./Schedule.js";
-import { TestRule, NightAfterNightOffRule2, NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule } from "./Rule.js";
+import { NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule } from "./Rule.js";
 
 function solve(schedule, rules){
   const D = schedule.days;
   const P = schedule.people.length;
   let nodes = 0;
+  let bestCost = Infinity;
+  let bestSched = null;
+  let foundOptimal = false;
   const trail = [];
 
   function mark() { return trail.length;}
@@ -14,15 +17,15 @@ function solve(schedule, rules){
       schedule.domain[d][p].add(duty);
     }
   }
-  const neighbors = (d, p) => {
-    const result = [];
+  function *neighbors(d, p) {
     for (let i = 0; i < D; i++) {
-      if (i !== d) result.push([i, p]);
+      if (i == d) continue;
+      yield [i, p];
     }
     for (let j = 0; j < P; j++) {
-      if (j !== p) result.push([d, j]);
+      if (j == p) continue;
+      yield [d, j];
     }
-    return result;
   }
 
   function removeCandidate(day, person, duty){
@@ -49,7 +52,7 @@ function solve(schedule, rules){
       if (schedule.isDayFilled(d)) continue;
       if (schedule.isPersonFilled(p)) continue;
       if (schedule.duty(d, p)) continue;
-      prevDomain = new Set(schedule.domain[d][p]);
+      prevDomain = schedule.domain[d][p];
       for (const duty of [...schedule.domain[d][p]]){
         schedule.setDuty(d, p, duty);
         let ok = true;
@@ -70,6 +73,32 @@ function solve(schedule, rules){
     return true;
   }
 
+  function heuristicLower(_d, _p){
+    // 1) 현재 최대·최소 근무시간 차
+    const hours = schedule.personDutyHours;
+    const maxH  = Math.max(...hours);
+    const minH  = Math.min(...hours);
+    const gap   = maxH - minH;
+    if (gap === 0) return 0;
+
+    // 2) 최소 근무시간 그룹 중, 남은 칸이 가장 많은 사람 찾기
+    let bestSlots = 0;
+    for (let i = 0; i < hours.length; i++){
+      if (hours[i] === minH){
+        const slotsLeft = schedule.days - schedule.personFillCount[i];
+        if (slotsLeft > bestSlots) bestSlots = slotsLeft;
+      }
+    }
+
+    // 3) 야근(14h)만 맡긴다고 가정해도 따라잡을 수 있는 최대치
+    const maxCatchUp = bestSlots * 14;
+    const remainingMinCanCatchUp = Math.min(gap, maxCatchUp);
+
+    // 4) 남는 격차 = admissible lower bound
+    return gap - remainingMinCanCatchUp;
+  }
+
+
   function chooseVar(){
     let best = null, bestSize = Infinity;
     for (let d = 0; d < D; d++){
@@ -88,29 +117,38 @@ function solve(schedule, rules){
     return best;
   }
 
-  function dfs(depth){
+  function dfs(depth, curCost, lowerBound){
+    if (lowerBound >= bestCost) return;
     const varPos = chooseVar();
-    if (!varPos) return true;
+    if (!varPos) {
+      if (curCost < bestCost){
+          bestCost   = curCost;
+          bestSched  = schedule.snapshot();
+          if (bestCost <= 10) foundOptimal = true;
+      }
+      return;
+    }
     const [d, p] = varPos;
-    const prevDomain = new Set(schedule.domain[d][p]);
+    const prevDomain = schedule.domain[d][p];
     for (let duty of [...schedule.domain[d][p]]){
+      if (foundOptimal) return;
       nodes++;
       const snap = mark();
       schedule.setDuty(d, p, duty);
       if (forwardCheck(d, p)) {
-        const res = dfs(depth + 1);
-        if (res) return true;
+        const nextCost       = Math.max(...schedule.personDutyHours) - Math.min(...schedule.personDutyHours);
+        const nextLowerBound = nextCost + heuristicLower(d,p);
+        dfs(depth + 1, nextCost, nextLowerBound);
       }
       schedule.unsetDuty(d, p, prevDomain);
       rollback(snap);
     }
-    return false;
   }
-  const res = dfs(0);
-  return { solved : res, nodesVisited: nodes };
+  dfs(0, 1000000, 1000000);
+  return { solved : bestSched !== null, nodesVisited : nodes, bestSched : bestSched };
 }
 
-for (let i = 3; i <= 8; i++) {
+for (let i = 7; i <= 7; i++) {
 const peopleDemo = Array.from({ length: i }, (_, j) => `사람${j + 1}`);
 const schedDemo  = new Schedule(31, peopleDemo);
 
@@ -119,16 +157,11 @@ const rulesDemo  = [
   new EssentialDuty(),
   new NoConsecutiveOffRule(),
   new MinimalDutiesRule(),
-  new NightAfterNightOffRule2()
-];
-[
-  new MinimalDutiesRule()
-  
 ];
 
 console.time("solve");
-const {solved,nodesVisited} = solve(schedDemo, rulesDemo);
+const {solved, nodesVisited, bestSched} = solve(schedDemo, rulesDemo);
 console.timeEnd("solve");
 console.log(`PeopleCount : ${i} | Solved: ${solved} | Nodes: ${nodesVisited - i * 31}`);
-console.log(schedDemo.toString());
+console.log(bestSched.toString());
 }
