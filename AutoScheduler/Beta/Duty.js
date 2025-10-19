@@ -1,6 +1,7 @@
 class DutyType {
-  constructor(label, hours, isDay = false, isNight = false, isLeft = false) {
+  constructor(label, id, hours, isDay = false, isNight = false, isLeft = false) {
     this.label = label;
+    this.id = id;
     this.hours = hours;
     this.isDay = isDay;
     this.isNight = isNight;
@@ -12,11 +13,11 @@ class DutyType {
 }
 
 const Duty = Object.freeze({
-  DAY:   new DutyType("주", 10, true, false, false),
-  NIGHT: new DutyType("야", 14, false, true, false),
-  OFF:   new DutyType("비", 0),
+  DAY:   new DutyType("주", "DAY", 10, true, false, false),
+  NIGHT: new DutyType("야", "NIGHT", 14, false, true, false),
+  OFF:   new DutyType("비", "OFF", 0),
   //ALL:   new DutyType("짱", 24, true, true, false),
-  //VACATION: new DutyType("휴", 0, false, false, true)
+  VACATION: new DutyType("휴", "VACATION", 0, false, false, true)
 });
 const DUTIES = Object.values(Duty);
 

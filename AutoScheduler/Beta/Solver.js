@@ -1,7 +1,4 @@
-import { Schedule } from "./Schedule.js";
-import { NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule } from "./Rule.js";
-
-function solve(schedule, rules){
+export function solve(schedule, rules){
   const D = schedule.days;
   const P = schedule.people.length;
   let nodes = 0;
@@ -146,23 +143,4 @@ function solve(schedule, rules){
   }
   dfs(0, 1000000, 1000000);
   return { solved : bestSched !== null, nodesVisited : nodes, bestSched : bestSched };
-}
-
-for (let i = 7; i <= 7; i++) {
-  if (prompt()=="") continue;
-const peopleDemo = Array.from({ length: i }, (_, j) => `사람${j + 1}`);
-const schedDemo  = new Schedule(31, peopleDemo);
-
-const rulesDemo  = [
-  new NightAfterNightOffRule(),
-  new EssentialDuty(),
-  new NoConsecutiveOffRule(),
-  new MinimalDutiesRule(),
-];
-
-console.time("solve");
-const {solved, nodesVisited, bestSched} = solve(schedDemo, rulesDemo);
-console.timeEnd("solve");
-console.log(`PeopleCount : ${i} | Solved: ${solved} | Nodes: ${nodesVisited - i * 31}`);
-console.log(bestSched.toString());
 }

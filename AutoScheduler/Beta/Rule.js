@@ -1,5 +1,6 @@
 import { Duty } from "./Duty.js";
 class Rule {
+  description() { return "기본 규칙"; }
   isPartialValid(_schedule, _dayIdx, _personIdx){ return true; }
   isPersonValid(_schedule, _personIdx){ return true; }
   isDayValid   (_schedule, _dayIdx){ return true; }
@@ -7,6 +8,7 @@ class Rule {
 }
 
 class NightAfterNightOffRule extends Rule {
+  description() { return "야근 다음날은 반드시 휴무"; }
   isPartialValid(schedule, day, person) {
     let stop = true;
     if (day > 0){
@@ -24,8 +26,8 @@ class NightAfterNightOffRule extends Rule {
   }
 }
 
-// 하루에 NIGHT 1명만 허용
 class EssentialDuty extends Rule {
+  description() { return "하루에 야근 1명, 주간 1명 필수"; }
   isPartialValid(schedule, dayIdx){
     return schedule.dayDutyCounts[dayIdx][Duty.NIGHT] <= 1;
   }
@@ -36,6 +38,7 @@ class EssentialDuty extends Rule {
 
 // OFF 연속 금지
 class NoConsecutiveOffRule extends Rule {
+  description() { return "연속 휴무 금지"; }
   isPartialValid(schedule, dayIdx, personIdx){
     if (dayIdx == 0) return true;
     const now = schedule.duty(dayIdx, personIdx);
@@ -46,6 +49,7 @@ class NoConsecutiveOffRule extends Rule {
 
 // 최소 근무 조건
 class MinimalDutiesRule extends Rule {
+  description() { return "최소 근무 조건 충족"; }
   isPartialValid(schedule, dayIdx, personIdx){
     const personFillCount = schedule.personFillCount[personIdx];
 
@@ -73,10 +77,21 @@ class MinimalDutiesRule extends Rule {
 }
 
 class TestRule extends Rule {
+  description() { return "테스트용 규칙: 최소 1회 야근"; }
   isPersonValid(schedule, personIdx){
     const nightCnt = schedule.personDutyCounts[personIdx][Duty.NIGHT];
     return nightCnt >= 1;
   } 
 }
 
-export { TestRule, NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule };
+var ALL_RULES = [
+  new NightAfterNightOffRule(),
+  new EssentialDuty(),
+  new NoConsecutiveOffRule(),
+  new MinimalDutiesRule()
+]
+
+var RULES_MASK = Object.fromEntries(ALL_RULES.map(rule => [rule.__proto__.constructor.name, true]))
+ALL_RULES = Object.fromEntries(ALL_RULES.map(rule => [rule.__proto__.constructor.name, rule]))
+
+export { RULES_MASK, ALL_RULES, TestRule, NightAfterNightOffRule, EssentialDuty, NoConsecutiveOffRule, MinimalDutiesRule };

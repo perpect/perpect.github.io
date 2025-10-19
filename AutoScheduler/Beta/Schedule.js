@@ -7,15 +7,16 @@ class Schedule {
     this.grid   = Array.from({ length: days }, () =>
       Array(people.length).fill(null)
     );
-    this.domain = Array.from({length:days},()=>Array.from({length:people.length},()=>new Set(DUTIES)));
+    const filteredDuties = DUTIES.filter(d => d.isLeft === false);
+    this.domain = Array.from({length:days},()=>Array.from({length:people.length},()=>new Set(filteredDuties)));
     this.dayDutyCounts = Array.from({ length: days }, () =>
-        Object.fromEntries(DUTIES.map(duty => [duty, 0]))
+        Object.fromEntries(filteredDuties.map(duty => [duty, 0]))
     );
     this.dayDutyHours = Array(days).fill(0);
     this.dayFillCount = Array(days).fill(0);
 
     this.personDutyCounts = Array.from({ length: people.length }, () =>
-        Object.fromEntries(DUTIES.map(duty => [duty, 0]))
+        Object.fromEntries(filteredDuties.map(duty => [duty, 0]))
     );
     this.personDutyHours = Array(people.length).fill(0);
     this.personFillCount = Array(people.length).fill(0);
@@ -36,7 +37,7 @@ class Schedule {
     this.domain[dayIdx][personIdx] = new Set([duty]);
   }
 
-  unsetDuty(dayIdx, personIdx, prevDomain = new Set(DUTIES)) {
+  unsetDuty(dayIdx, personIdx, prevDomain = new Set(DUTIES.filter(d => d.isLeft === false))) {
     const duty = this.grid[dayIdx][personIdx];
     if (!duty) return;
     this.grid[dayIdx][personIdx] = null;
